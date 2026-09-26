@@ -268,26 +268,47 @@
 
   function pad(n) { return (n < 10 ? '0' : '') + n; }
 
-  // Progress blocks under a heading: "level 3 of 6" = two cleared (cyan), one current (gold), three empty.
-  function levelBar(current, total) {
-    var bar = el('span', { class: 'level-bar', 'aria-hidden': 'true' });
-    for (var i = 1; i <= total; i++) {
-      bar.appendChild(el('span', { class: i < current ? 'is-done' : i === current ? 'is-current' : null }));
-    }
-    return bar;
+  // The player ship from the favicon, as a small inline pixel sprite.
+  function shipSprite() {
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '1 1 9 8');
+    svg.setAttribute('class', 'map-ship');
+    svg.setAttribute('shape-rendering', 'crispEdges');
+    [
+      ['#22d3ee', 'M5 1h1v1H5zM4 2h3v1H4zM4 3h1v1H4zM6 3h1v1H6zM3 4h2v1H3zM6 4h2v1H6zM3 5h5v1H3zM2 6h2v1H2zM5 6h1v1H5zM7 6h2v1H7zM1 7h2v1H1zM4 7h3v1H4zM8 7h2v1H8zM1 8h1v1H1zM4 8h1v1H4zM6 8h1v1H6zM9 8h1v1H9z'],
+      ['#f472b6', 'M5 3h1v2H5z'],
+      ['#facc15', 'M4 6h1v1H4zM6 6h1v1H6z']
+    ].forEach(function (part) {
+      var path = document.createElementNS(ns, 'path');
+      path.setAttribute('fill', part[0]);
+      path.setAttribute('d', part[1]);
+      svg.appendChild(path);
+    });
+    return svg;
   }
 
-  // Puts the bar inside the section's heading (or after its level tag if it has no heading).
-  function placeLevelBar(section, current, total) {
-    var old = section.querySelector('.level-bar');
-    if (old) old.remove();
-    var heading = section.querySelector('.section-title');
-    var bar = levelBar(current, total);
-    if (heading) heading.appendChild(bar);
-    else {
-      var tag = section.querySelector('.level-tag');
-      if (tag) tag.after(bar);
+  // World-map path under a heading (like a Mario world map): numbered stops joined by a
+  // dotted path; cleared stops cyan, the ship parked on the current one, the rest hollow.
+  function levelBar(current, total) {
+    var map = el('span', { class: 'level-map', 'aria-hidden': 'true' });
+    for (var i = 1; i <= total; i++) {
+      if (i > 1) map.appendChild(el('span', { class: 'map-path' + (i <= current ? ' is-done' : '') }));
+      var state = i < current ? ' is-done' : i === current ? ' is-current' : '';
+      var mark = el('span', { class: 'map-mark' });
+      if (i === current) mark.appendChild(shipSprite());
+      map.appendChild(el('span', { class: 'map-stop' + state }, [mark, el('span', { class: 'map-num', text: String(i) })]));
     }
+    return map;
+  }
+
+  // Puts the map right after the section's heading (or its level tag if it has no heading).
+  // It sits outside the <h2> so the heading text stays just "Projects", not "Projects123456".
+  function placeLevelBar(section, current, total) {
+    var old = section.querySelector('.level-map');
+    if (old) old.remove();
+    var anchor = section.querySelector('.section-title') || section.querySelector('.level-tag');
+    if (anchor) anchor.after(levelBar(current, total));
   }
 
   // Show only the first row of a grid (as many items as fit the current width), with a

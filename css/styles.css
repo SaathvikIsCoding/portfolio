@@ -586,13 +586,41 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
   letter-spacing: 0.01em;
   margin-bottom: var(--space-6);
 }
-/* Level progress under each heading: one block per level/part — cleared ones cyan,
-   the current one gold, the rest empty. Built by levelBar() in main.js. */
-.level-bar { display: flex; flex-wrap: wrap; gap: 4px; margin-top: var(--space-3); }
-.level-bar > span { width: 14px; height: 8px; box-shadow: inset 0 0 0 2px var(--color-border); }
-.level-bar > .is-done { background: var(--color-accent); box-shadow: none; }
-.level-bar > .is-current { background: var(--color-gold); box-shadow: none; }
-.level-tag + .level-bar { margin: 0 0 var(--space-5); } /* sections without a heading */
+/* World-map path under each heading (levelBar() in main.js): numbered stops joined by a
+   dotted path. Cleared stops/paths cyan, the player ship parked on the current stop,
+   upcoming stops hollow. */
+.level-map { display: flex; align-items: flex-start; max-width: 100%; margin: 0 0 var(--space-6); }
+.section-title:has(+ .level-map) { margin-bottom: var(--space-4); }
+.map-stop { flex: none; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.map-mark { width: 24px; height: 24px; display: grid; place-items: center; }
+.map-stop:not(.is-current) .map-mark::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  box-shadow: inset 0 0 0 2px #3a3a3a;
+  clip-path: polygon(2px 0, calc(100% - 2px) 0, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 0 calc(100% - 2px), 0 2px);
+}
+.map-stop.is-done .map-mark::before { background: var(--color-accent); box-shadow: none; }
+.map-num { font-family: var(--font-pixel); font-size: var(--fs-pixel-sm); line-height: 1; color: #5a5a5a; }
+.map-stop.is-done .map-num { color: var(--color-accent); }
+.map-stop.is-current .map-num { color: var(--color-gold); }
+.map-path {
+  flex: 0 1 28px;
+  min-width: 8px;
+  height: 2px;
+  margin-top: 11px; /* centred on the 24px stop */
+  background: repeating-linear-gradient(90deg, #3a3a3a 0 4px, transparent 4px 7px);
+}
+.map-path.is-done { background: repeating-linear-gradient(90deg, var(--color-accent) 0 4px, transparent 4px 7px); }
+.map-ship {
+  width: 24px;
+  height: 21px;
+  transform: rotate(90deg); /* facing the next level */
+  filter: drop-shadow(0 0 4px rgb(34 211 238 / 0.6));
+  animation: ship-bob 0.8s steps(2) infinite;
+}
+@keyframes ship-bob { 50% { transform: rotate(90deg) translateX(-2px); } }
+.level-tag + .level-map { margin: 0 0 var(--space-5); } /* parts without a heading */
 
 /* About */
 .about-body { display: grid; gap: var(--space-6); }
