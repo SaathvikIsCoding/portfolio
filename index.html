@@ -26,12 +26,7 @@
 
   <header class="site-header">
     <div class="container header-inner">
-      <a class="brand" href="#top" data-bind="name">Portfolio</a>
-      <div class="hud">
-        <span class="hud-stage pixel" aria-hidden="true">Start</span>
-        <button class="hud-btn pixel game-toggle" type="button" aria-pressed="true" hidden>Game on</button>
-        <button class="hud-btn pixel theme-toggle" type="button">Lights on</button>
-      </div>
+      <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true">▶</span> <span data-bind="name">Portfolio</span></a>
       <nav class="site-nav" aria-label="Main">
         <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-list">
           <span class="nav-toggle-bar"></span>
@@ -46,66 +41,93 @@
           <li><a href="#contact">Contact</a></li>
         </ul>
       </nav>
+      <span class="hud-level" aria-hidden="true">LVL 00</span>
+      <button class="game-toggle" type="button" aria-pressed="true" hidden>Game on</button>
+      <button class="theme-toggle" type="button" aria-label="Toggle light and dark mode">
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
     </div>
-    <div class="xp-bar" aria-hidden="true"><span class="xp-fill"></span></div>
+    <div class="xp-bar" aria-hidden="true"><span class="xp-label">XP</span><span class="xp-track"><span class="xp-fill"></span></span></div>
   </header>
 
   <main id="main">
     <section class="hero" id="top">
       <div class="container hero-inner">
         <div class="hero-text">
-          <h1 class="hero-name" data-bind="name">&nbsp;</h1>
-          <p class="hero-role" data-bind="role"></p>
+          <p class="eyebrow pixel">Player 1 <span class="blink" aria-hidden="true">·</span> Ready</p>
+          <h1 class="hero-name glitch" data-bind="name">&nbsp;</h1>
+          <p class="hero-role"><span class="pixel-label">Class</span> <span data-bind="role"></span></p>
           <p class="hero-tagline" data-bind="tagline"></p>
           <div class="hero-actions" data-slot="actions"></div>
+          <ul class="social-list" data-slot="socials"></ul>
         </div>
-        <div class="hero-photo" data-slot="photo"></div>
+        <div class="hero-photo">
+          <div class="char-frame">
+            <span class="char-tag pixel" aria-hidden="true">P1</span>
+            <div class="char-slot" data-slot="photo"></div>
+            <span class="char-status pixel" aria-hidden="true"><span class="blink">▶</span> Selected</span>
+          </div>
+        </div>
       </div>
       <div class="container">
-        <div data-slot="savefile"></div>
+        <dl class="hero-stats" data-slot="stats"></dl>
       </div>
     </section>
 
     <section class="section" id="about" aria-labelledby="about-title">
       <div class="container">
-        <h2 class="section-title" id="about-title"><span class="stage" aria-hidden="true"></span><span class="title-text">About</span></h2>
-        <div data-slot="about"></div>
+        <p class="level-tag pixel" data-level-name="Character bio"></p>
+        <h2 class="section-title" id="about-title">About me</h2>
+        <div class="about-body">
+          <div class="about-text" data-slot="about"></div>
+          <ul class="facts panel" data-slot="facts"></ul>
+        </div>
       </div>
     </section>
 
-    <section class="section" id="skills" aria-labelledby="skills-title">
+    <section class="section section-alt" id="skills" aria-labelledby="skills-title">
       <div class="container">
-        <h2 class="section-title" id="skills-title"><span class="stage" aria-hidden="true"></span><span class="title-text">Skills</span></h2>
-        <ul class="skill-list" data-slot="skills"></ul>
+        <p class="level-tag pixel" data-level-name="Inventory"></p>
+        <h2 class="section-title" id="skills-title">Skills</h2>
+        <ul class="inventory" data-slot="skills"></ul>
       </div>
     </section>
 
     <section class="section" id="projects" aria-labelledby="projects-title">
       <div class="container">
-        <h2 class="section-title" id="projects-title"><span class="stage" aria-hidden="true"></span><span class="title-text">Projects</span></h2>
-        <ol class="level-select" data-slot="projects"></ol>
+        <p class="level-tag pixel" data-level-name="Quests"></p>
+        <h2 class="section-title" id="projects-title">Projects</h2>
+        <div class="project-grid" data-slot="projects"></div>
       </div>
     </section>
 
-    <section class="section" id="experience" aria-labelledby="experience-title">
+    <section class="section section-alt" id="experience" aria-labelledby="experience-title">
       <div class="container">
-        <h2 class="section-title" id="experience-title"><span class="stage" aria-hidden="true"></span><span class="title-text">Experience</span></h2>
-        <ol class="log" data-slot="experience"></ol>
+        <p class="level-tag pixel" data-level-name="Quest log"></p>
+        <h2 class="section-title" id="experience-title">Experience</h2>
+        <ol class="timeline" data-slot="experience"></ol>
       </div>
     </section>
 
     <section class="section" id="education" aria-labelledby="education-title">
       <div class="container">
-        <h2 class="section-title" id="education-title"><span class="stage" aria-hidden="true"></span><span class="title-text">Education</span></h2>
-        <ol class="log" data-slot="education"></ol>
-        <div data-slot="certifications"></div>
+        <p class="level-tag pixel" data-level-name="Training grounds"></p>
+        <h2 class="section-title" id="education-title">Education</h2>
+        <ol class="edu-list" data-slot="education"></ol>
+        <div class="certs" data-slot="certifications"></div>
       </div>
     </section>
 
-    <section class="section" id="contact" aria-labelledby="contact-title">
+    <section class="section section-alt" id="contact" aria-labelledby="contact-title">
       <div class="container">
-        <h2 class="section-title" id="contact-title"><span class="stage" aria-hidden="true"></span><span class="title-text">Contact</span></h2>
-        <div data-slot="contact"></div>
+        <div class="contact-card panel">
+          <p class="level-tag pixel" data-level-name="Co-op mode"></p>
+          <h2 class="section-title" id="contact-title">Let's work together</h2>
+          <p class="contact-lead">Building a game, a world or a campaign? Looking for a designer for your team? Player 2 is always welcome.</p>
+          <p class="press-start pixel" aria-hidden="true">Press start</p>
+          <div class="contact-actions" data-slot="contact"></div>
+        </div>
       </div>
     </section>
 
@@ -116,8 +138,9 @@
 
   <footer class="site-footer">
     <div class="container footer-inner">
-      <p>&copy; <span data-bind="year"></span> <span data-bind="name"></span></p>
-      <a href="#top">Back to top ↑</a>
+      <p>&copy; <span data-bind="year"></span> <span data-bind="name"></span> · Thanks for playing!</p>
+      <a class="continue pixel" href="#top">Continue? ↑</a>
+      <p class="cheat-hint" aria-hidden="true">psst… ↑ ↑ ↓ ↓ ← → ← → B A</p>
     </div>
   </footer>
 

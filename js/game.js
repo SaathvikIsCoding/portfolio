@@ -154,6 +154,8 @@
     fctx.translate(Math.round(ship.x), Math.round(ship.y));
     fctx.rotate(ship.angle + Math.PI / 2);
     var img = sprites.player;
+    fctx.shadowColor = colors.accent;
+    fctx.shadowBlur = 10;
     fctx.drawImage(img, -img.width / 2, -img.height / 2);
     fctx.restore();
   }
@@ -325,7 +327,8 @@
       if (hit >= 0) { damageEnemy(enemies[hit], hit); shots.splice(i, 1); continue; }
       if (sd <= step) {
         shots.splice(i, 1);
-        burst(s.tx, s.ty, 10, [colors.accent, colors['accent-2'], colors.gold], 2.2);
+        burst(s.tx, s.ty, 22, [colors.accent, colors['accent-2'], colors.gold, colors.text], 3.2);
+        floatText(s.tx + 10, s.ty - 10, '+10 XP', colors.gold);
         continue;
       }
       s.x = nx; s.y = ny;
@@ -408,8 +411,11 @@
         if (ship.dead > 0) return;
         shots.push({ x: ship.x + Math.cos(ship.angle) * 14, y: ship.y + Math.sin(ship.angle) * 14, tx: e.clientX, ty: e.clientY });
       } else {
-        burst(e.clientX, e.clientY, 12, [colors.accent, colors['accent-2'], colors.gold], 2.2);
+        burst(e.clientX, e.clientY, 14, [colors.accent, colors['accent-2'], colors.gold], 2.4);
       }
+      shotsFired += 1;
+      if (shotsFired === 1) unlock('first-shot');
+      if (shotsFired === 25) unlock('sharpshooter');
     }, { passive: true });
   }
 
@@ -433,7 +439,7 @@
 
   // ---------- Scroll bar + stage HUD ----------
   var xpFill = document.querySelector('.xp-fill');
-  var hud = document.querySelector('.hud-stage');
+  var hud = document.querySelector('.hud-level');
   var hudTicking = false;
   function updateHud() {
     hudTicking = false;
@@ -445,7 +451,7 @@
     document.querySelectorAll('main > section[data-level]').forEach(function (s) {
       if (s.getBoundingClientRect().top < line) level = Number(s.dataset.level);
     });
-    hud.textContent = level ? 'Stage 1-' + level : 'Start';
+    hud.textContent = 'LVL ' + (level < 10 ? '0' : '') + level;
     if (progress > 0.97) unlock('explorer');
   }
   function onScroll() {
@@ -454,12 +460,15 @@
 
   // ---------- Achievements ----------
   var ACHIEVEMENTS = {
+    'first-shot': ['First Shot', 'You clicked. The ship fired. Welcome, player.'],
+    'sharpshooter': ['Sharpshooter', '25 shots fired. Impressive aim.'],
     'first-kill': ['First Blood', 'Destroyed your first enemy ship.'],
     'ace': ['Ace Pilot', 'Ten enemy ships down.'],
     'shot-down': ['Shot Down', 'Your ship respawns in a few seconds.'],
-    'explorer': ['Explorer', 'Scrolled to the very end.'],
-    'konami': ['Cheat Code', 'You know the code.']
+    'explorer': ['Explorer', 'You reached the end of the map.'],
+    'konami': ['Cheat Code', '↑↑↓↓←→←→BA · Infinite creativity unlocked.']
   };
+  var shotsFired = 0;
   var queue = [];
   var showing = false;
   var tray = document.querySelector('.achievements');
@@ -471,20 +480,37 @@
     if (!showing) nextAchievement();
   }
 
+  function trophy() {
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 16 16');
+    svg.setAttribute('class', 'trophy');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('shape-rendering', 'crispEdges');
+    var path = document.createElementNS(ns, 'path');
+    path.setAttribute('fill', 'currentColor');
+    path.setAttribute('fill-rule', 'evenodd');
+    path.setAttribute('d', 'M4 1h8v2h3v4h-1v1h-2v1h-1v2h-1v1h2v3H4v-3h2v-1H5V9H4V8H2V7H1V3h3zM2 4h2v2H2zm10 0h2v2h-2z');
+    svg.appendChild(path);
+    return svg;
+  }
+
   function nextAchievement() {
     var a = queue.shift();
     if (!a) { showing = false; return; }
     showing = true;
     var box = document.createElement('div');
-    box.className = 'window achievement';
+    box.className = 'achievement';
     var text = document.createElement('div');
+    var kicker = document.createElement('span');
+    kicker.className = 'ach-kicker';
+    kicker.textContent = 'Achievement unlocked';
     var title = document.createElement('strong');
     title.textContent = a[0];
     var desc = document.createElement('small');
     desc.textContent = a[1];
-    text.append(title, desc);
-    if (window.pixelTrophy) box.append(window.pixelTrophy());
-    box.append(text);
+    text.append(kicker, title, desc);
+    box.append(trophy(), text);
     tray.appendChild(box);
     setTimeout(function () {
       box.classList.add('is-leaving');
@@ -501,6 +527,10 @@
     if (kpos === KONAMI.length) {
       kpos = 0;
       unlock('konami');
+      for (var c = 0; c < 8; c++) {
+        burst(W * (0.1 + 0.8 * Math.random()), H * (0.15 + 0.5 * Math.random()), 30,
+          [colors.accent, colors['accent-2'], colors.gold, colors.success], 4.5);
+      }
       enemies.forEach(function (en) { burst(en.x, en.y, 30, ['#ff4d6d', colors.gold, '#ffffff'], 4); });
       score += enemies.length * 100;
       clearEnemies();
@@ -508,7 +538,26 @@
     }
   });
 
+  // ---------- Quest-card tilt ----------
+  function setupTilt() {
+    if (!finePointer || reduceMotion) return;
+    document.addEventListener('pointermove', function (e) {
+      var card = e.target.closest && e.target.closest('.project-card');
+      document.querySelectorAll('.project-card.is-tilting').forEach(function (c) {
+        if (c !== card) { c.classList.remove('is-tilting'); c.style.transform = ''; c.style.transition = ''; }
+      });
+      if (!card) return;
+      var r = card.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width - 0.5;
+      var py = (e.clientY - r.top) / r.height - 0.5;
+      card.classList.add('is-tilting');
+      card.style.transition = 'transform 0.08s linear, box-shadow 0.2s ease';
+      card.style.transform = 'perspective(800px) rotateX(' + (-py * 8).toFixed(2) + 'deg) rotateY(' + (px * 8).toFixed(2) + 'deg) translateY(-4px)';
+    }, { passive: true });
+  }
+
   // ---------- Boot ----------
+  setupTilt();
   readColors();
   resize();
   window.addEventListener('resize', resize);
