@@ -995,6 +995,12 @@ html.game-cursor dialog input[type="text"] { cursor: text !important; }
   border-radius: 0;
 }
 .survey input:focus, .survey select:focus { outline: none; border-color: var(--color-accent); }
+/* Empty fields all look the same: the name placeholder and an unchosen dropdown are muted grey,
+   real answers are white. (The dropdowns are required, so "Choose one…" matches :invalid.) */
+.survey input::placeholder { color: var(--color-muted); opacity: 1; }
+.survey select:invalid { color: var(--color-muted); }
+.survey option { color: var(--color-text); background: var(--color-surface); }
+.survey option[value=""] { color: var(--color-muted); }
 .survey-status { margin: 0; min-height: 1.4em; color: var(--color-gold); font-size: var(--fs-meta); }
 .survey-status:empty { min-height: 0; }
 .survey-actions { margin-top: var(--space-2); }
