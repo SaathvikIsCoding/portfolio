@@ -89,21 +89,29 @@
     // Skills
     var skills = (data.skills || []).filter(Boolean);
     hideSection('skills', skills.length === 0);
-    slot('skills').replaceChildren.apply(slot('skills'), skills.map(function (s) { return el('li', { text: s }); }));
+    var slotColors = ['var(--color-accent)', 'var(--color-accent-2)', 'var(--color-gold)', 'var(--color-success)'];
+    slot('skills').replaceChildren.apply(slot('skills'), skills.map(function (s, i) {
+      var icon = el('span', { class: 'slot-icon', 'aria-hidden': 'true', text: skillIcon(s) });
+      icon.style.setProperty('--slot-color', slotColors[i % slotColors.length]);
+      return el('li', { class: 'slot' }, [icon, el('span', { text: s })]);
+    }));
 
     // Projects
     var projects = (data.projects || []).filter(function (pr) { return pr && pr.title; });
     hideSection('projects', projects.length === 0);
-    slot('projects').replaceChildren.apply(slot('projects'), projects.map(function (pr) {
+    slot('projects').replaceChildren.apply(slot('projects'), projects.map(function (pr, i) {
       var img = safeUrl(pr.image);
-      var media = el('div', { class: 'project-media' }, [img
-        ? el('img', { src: img, alt: 'Screenshot of ' + pr.title, loading: 'lazy', width: '640', height: '400' })
-        : el('span', { class: 'project-media-letter', 'aria-hidden': 'true', text: pr.title.trim()[0] || '?' })]);
+      var media = el('div', { class: 'project-media' + (img ? '' : ' no-image') }, [
+        img
+          ? el('img', { src: img, alt: 'Screenshot of ' + pr.title, loading: 'lazy', width: '640', height: '400' })
+          : el('span', { class: 'project-media-letter', 'aria-hidden': 'true', text: pr.title.trim()[0] || '?' }),
+        el('span', { class: 'quest-tag pixel', 'aria-hidden': 'true', text: 'Quest ' + pad(i + 1) })
+      ]);
       var tech = (pr.tech || []).filter(Boolean);
       var links = [];
-      if (safeUrl(pr.live)) links.push(externalLink(safeUrl(pr.live), 'Live site →'));
-      if (safeUrl(pr.repo)) links.push(externalLink(safeUrl(pr.repo), 'Source code →'));
-      return el('article', { class: 'project-card reveal' }, [
+      if (safeUrl(pr.live)) links.push(externalLink(safeUrl(pr.live), 'View project ▶'));
+      if (safeUrl(pr.repo)) links.push(externalLink(safeUrl(pr.repo), 'Source code ▶'));
+      return el('article', { class: 'project-card panel reveal' }, [
         media,
         el('div', { class: 'project-body' }, [
           el('h3', { text: pr.title }),
@@ -116,7 +124,7 @@
 
     // Hero actions
     var actions = [];
-    if (projects.length) actions.push(el('a', { class: 'btn btn-primary', href: '#projects', text: 'View my work' }));
+    if (projects.length) actions.push(el('a', { class: 'btn btn-primary', href: '#projects', text: '▶ View my work' }));
     if (safeUrl(p.resume)) {
       var resumeBtn = externalLink(safeUrl(p.resume), 'Resume');
       resumeBtn.className = actions.length ? 'btn btn-ghost' : 'btn btn-primary';
@@ -130,7 +138,9 @@
     hideSection('experience', exp.length === 0);
     slot('experience').replaceChildren.apply(slot('experience'), exp.map(function (x) {
       var meta = [x.org, x.period, x.location].filter(Boolean).join(' · ');
+      var active = /present|current|now/i.test(x.period || '');
       return el('li', { class: 'reveal' }, [
+        el('span', { class: 'quest-status pixel ' + (active ? 'is-active' : 'is-done'), text: active ? 'In progress' : 'Quest complete' }),
         el('h3', { text: x.role || x.org }),
         meta ? el('p', { class: 'meta', text: meta }) : null,
         descriptionNode(x.description)
@@ -144,7 +154,7 @@
     document.getElementById('education-title').textContent =
       edu.length && certs.length ? 'Education & Certifications' : edu.length ? 'Education' : 'Certifications';
     slot('education').replaceChildren.apply(slot('education'), edu.map(function (e) {
-      return el('li', { class: 'edu-item reveal' }, [
+      return el('li', { class: 'edu-item panel reveal' }, [
         el('h3', { text: e.degree || e.school }),
         el('p', { class: 'meta', text: [e.degree ? e.school : '', e.period].filter(Boolean).join(' · ') })
       ]);
@@ -152,9 +162,37 @@
     slot('certifications').replaceChildren.apply(slot('certifications'), certs.length ? [
       edu.length ? el('h3', { class: 'certs-title', text: 'Certifications' }) : null,
       el('ul', { class: 'cert-list' }, certs.map(function (c) {
-        return el('li', null, [el('span', { text: c.name }), c.issuer ? el('span', { class: 'meta', text: c.issuer }) : null]);
+        return el('li', { class: 'reveal' }, [
+          trophy(),
+          el('span', { class: 'cert-text' }, [
+            el('span', { class: 'cert-kicker', 'aria-hidden': 'true', text: 'Achievement unlocked' }),
+            el('span', { text: c.name }),
+            c.issuer ? el('span', { class: 'meta', text: c.issuer }) : null
+          ])
+        ]);
       }))
     ] : []);
+
+    // Player stats (all derived from real content)
+    var stats = [];
+    var xp = experienceLength(exp);
+    if (xp) stats.push(['Years of XP', xp]);
+    if (projects.length) stats.push(['Quests', String(projects.length)]);
+    if (skills.length) stats.push(['Skills unlocked', String(skills.length)]);
+    if (certs.length) stats.push(['Achievements', String(certs.length)]);
+    slot('stats').replaceChildren.apply(slot('stats'), stats.map(function (s) {
+      return el('div', { class: 'stat' }, [el('dt', { text: s[0] }), el('dd', { text: s[1] })]);
+    }));
+
+    // Level numbers follow the visible sections, so hidden ones don't leave gaps.
+    var level = 0;
+    document.querySelectorAll('main > section.section').forEach(function (section) {
+      var tag = section.querySelector('.level-tag');
+      if (section.hidden) { delete section.dataset.level; return; }
+      level += 1;
+      section.dataset.level = level;
+      if (tag) tag.textContent = 'Level ' + pad(level) + ' · ' + tag.getAttribute('data-level-name');
+    });
 
     renderStructuredData(data);
 
@@ -167,6 +205,47 @@
       contact.push(a);
     });
     slot('contact').replaceChildren.apply(slot('contact'), contact);
+  }
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  function skillIcon(name) {
+    var words = name.replace(/[^\w\s.+#]/g, ' ').trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return '?';
+    var text = words.length > 1 ? words[0][0] + words[1][0] : words[0].slice(0, 2);
+    return text.toUpperCase();
+  }
+
+  function trophy() {
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 16 16');
+    svg.setAttribute('class', 'trophy');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('shape-rendering', 'crispEdges');
+    var path = document.createElementNS(ns, 'path');
+    path.setAttribute('fill', 'currentColor');
+    path.setAttribute('fill-rule', 'evenodd');
+    path.setAttribute('d', 'M4 1h8v2h3v4h-1v1h-2v1h-1v2h-1v1h2v3H4v-3h2v-1H5V9H4V8H2V7H1V3h3zM2 4h2v2H2zm10 0h2v2h-2z');
+    svg.appendChild(path);
+    return svg;
+  }
+
+  // "2+" years from the earliest start date found in experience periods (e.g. "Aug 2024 – Present").
+  function experienceLength(items) {
+    var months = 'jan feb mar apr may jun jul aug sep oct nov dec'.split(' ');
+    var earliest = null;
+    items.forEach(function (x) {
+      var m = String(x.period || '').match(/(?:([a-z]{3})[a-z]*\.?\s+)?(\d{4})/i);
+      if (!m) return;
+      var mi = m[1] ? months.indexOf(m[1].toLowerCase()) : 0;
+      var d = new Date(Number(m[2]), mi < 0 ? 0 : mi, 1);
+      if (!earliest || d < earliest) earliest = d;
+    });
+    if (!earliest) return '';
+    var total = (new Date().getFullYear() - earliest.getFullYear()) * 12 + new Date().getMonth() - earliest.getMonth();
+    if (total < 1) return '';
+    return total < 12 ? total + ' mo' : Math.floor(total / 12) + '+';
   }
 
   // Multi-line descriptions become bullet lists; single lines stay a paragraph.
@@ -244,7 +323,7 @@
 
   fetch('content/content.json?v=' + Date.now(), { cache: 'no-store' })
     .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
-    .then(function (data) { render(data); setupReveal(); })
+    .then(function (data) { render(data); setupReveal(); document.dispatchEvent(new CustomEvent('portfolio:rendered')); })
     .catch(function (err) {
       console.error('Could not load content:', err);
       slot('about').replaceChildren(el('p', { text: 'Content could not be loaded. Please refresh the page.' }));
