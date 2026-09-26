@@ -21,21 +21,22 @@
         else node.setAttribute(key, value);
       });
     }
-    (children || []).forEach(function (child) { if (child) node.appendChild(child); });
+    (children || []).forEach(function (child) {
+      if (child) node.appendChild(typeof child === 'string' ? document.createTextNode(child) : child);
+    });
     return node;
   }
 
-  function externalLink(href, text) {
-    var a = el('a', { href: href, text: text });
+  function link(href, text, cls) {
+    var a = el('a', { href: href, text: text, class: cls });
     if (/^https?:/i.test(href)) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
     return a;
   }
 
-  function initials(name) {
-    return (name || '?').trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase();
+  function fill(name, nodes) {
+    var node = document.querySelector('[data-slot="' + name + '"]');
+    node.replaceChildren.apply(node, nodes.filter(Boolean));
   }
-
-  function slot(name) { return document.querySelector('[data-slot="' + name + '"]'); }
 
   function hideSection(id, hide) {
     var section = document.getElementById(id);
@@ -43,6 +44,49 @@
     var navItem = document.querySelector('[data-section="' + id + '"]');
     if (navItem) navItem.hidden = hide;
   }
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  function lines(text) {
+    return String(text || '').split('\n').map(function (l) { return l.replace(/^\s*[•\-*]\s*/, '').trim(); }).filter(Boolean);
+  }
+
+  function trophy() {
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 16 16');
+    svg.setAttribute('class', 'trophy');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('shape-rendering', 'crispEdges');
+    var path = document.createElementNS(ns, 'path');
+    path.setAttribute('fill', 'currentColor');
+    path.setAttribute('fill-rule', 'evenodd');
+    path.setAttribute('d', 'M4 1h8v2h3v4h-1v1h-2v1h-1v2h-1v1h2v3H4v-3h2v-1H5V9H4V8H2V7H1V3h3zM2 4h2v2H2zm10 0h2v2h-2z');
+    svg.appendChild(path);
+    return svg;
+  }
+  window.pixelTrophy = trophy;
+
+  // Time since the earliest start date in the experience list, e.g. "2y 1m".
+  function playtime(items) {
+    var months = 'jan feb mar apr may jun jul aug sep oct nov dec'.split(' ');
+    var earliest = null;
+    items.forEach(function (x) {
+      var m = String(x.period || '').match(/(?:([a-z]{3})[a-z]*\.?\s+)?(\d{4})/i);
+      if (!m) return;
+      var mi = m[1] ? months.indexOf(m[1].toLowerCase()) : 0;
+      var d = new Date(Number(m[2]), mi < 0 ? 0 : mi, 1);
+      if (!earliest || d < earliest) earliest = d;
+    });
+    if (!earliest) return '';
+    var now = new Date();
+    var total = (now.getFullYear() - earliest.getFullYear()) * 12 + now.getMonth() - earliest.getMonth();
+    if (total < 1) return '';
+    var y = Math.floor(total / 12), mo = total % 12;
+    return (y ? y + 'y ' : '') + (mo ? mo + 'm' : '').trim();
+  }
+
+  function isCurrent(period) { return /present|current|now/i.test(period || ''); }
 
   function render(data) {
     var p = data.profile || {};
@@ -61,206 +105,132 @@
     [['meta[name="description"]', desc], ['meta[property="og:title"]', title], ['meta[property="og:description"]', desc]]
       .forEach(function (pair) { var m = document.querySelector(pair[0]); if (m) m.setAttribute('content', pair[1]); });
 
-    // Photo
-    var photoSlot = slot('photo');
-    var photo = safeUrl(p.photo);
-    photoSlot.replaceChildren(photo
-      ? el('img', { class: 'avatar', src: photo, alt: 'Photo of ' + name, width: '340', height: '340' })
-      : el('div', { class: 'avatar avatar-initials', 'aria-hidden': 'true', text: initials(name) }));
-
-    // Socials
     var socials = (data.socials || []).filter(function (s) { return s && s.label && safeUrl(s.url); });
-    slot('socials').replaceChildren.apply(slot('socials'), socials.map(function (s) {
-      return el('li', null, [externalLink(safeUrl(s.url), s.label)]);
-    }));
+    var skills = (data.skills || []).filter(Boolean);
+    var projects = (data.projects || []).filter(function (pr) { return pr && pr.title; });
+    var exp = (data.experience || []).filter(function (x) { return x && (x.role || x.org); });
+    var edu = (data.education || []).filter(function (e) { return e && (e.degree || e.school); });
+    var certs = (data.certifications || []).filter(function (c) { return c && c.name; });
 
-    // About
+    // Hero
+    var photo = safeUrl(p.photo);
+    fill('photo', [photo
+      ? el('img', { class: 'photo', src: photo, alt: 'Photo of ' + name, width: '300', height: '300' })
+      : el('div', { class: 'photo photo-initials', 'aria-hidden': 'true', text: name.trim()[0] || '?' })]);
+
+    fill('actions', [
+      projects.length ? el('a', { class: 'btn', href: '#projects', text: 'See my work' }) : el('a', { class: 'btn', href: '#contact', text: 'Get in touch' }),
+      safeUrl(p.resume) ? link(safeUrl(p.resume), 'Resume ↗', 'text-link') : null
+    ]);
+
+    // Save file
+    var time = playtime(exp);
+    var saveData = [];
+    if (p.location) saveData.push(['Location', p.location]);
+    if (time) saveData.push(['Playtime', time]);
+    fill('savefile', [el('div', { class: 'window save-file' }, [
+      el('span', { class: 'save-slot pixel', text: 'File 1' }),
+      el('div', { class: 'save-main' }, [el('strong', { text: name }), p.role ? el('span', { text: p.role }) : null]),
+      saveData.length ? el('dl', { class: 'save-data' }, saveData.reduce(function (acc, row) {
+        return acc.concat([el('dt', { text: row[0] }), el('dd', { text: row[1] })]);
+      }, [])) : null
+    ])]);
+
+    // About: dialog box
     var paragraphs = String(p.about || '').split(/\n\s*\n/).map(function (t) { return t.trim(); }).filter(Boolean);
-    slot('about').replaceChildren.apply(slot('about'), paragraphs.map(function (t) { return el('p', { text: t }); }));
-
-    var facts = [];
-    if (p.location) facts.push(['Location', el('span', { class: 'fact-value', text: p.location })]);
-    if (p.email) facts.push(['Email', el('a', { class: 'fact-value', href: 'mailto:' + p.email, text: p.email })]);
-    if (safeUrl(p.resume)) facts.push(['Resume', externalLink(safeUrl(p.resume), 'View resume')]);
-    slot('facts').replaceChildren.apply(slot('facts'), facts.map(function (f) {
-      return el('li', null, [el('div', { class: 'fact-label', text: f[0] }), f[1]]);
-    }));
+    fill('about', paragraphs.length ? [el('div', { class: 'window dialog' }, [
+      el('span', { class: 'dialog-name', 'aria-hidden': 'true', text: name }),
+      el('div', null, paragraphs.map(function (t) { return el('p', { text: t }); })),
+      el('span', { class: 'dialog-next', 'aria-hidden': 'true', text: '▼' })
+    ])] : []);
 
     // Skills
-    var skills = (data.skills || []).filter(Boolean);
     hideSection('skills', skills.length === 0);
-    var slotColors = ['var(--color-accent)', 'var(--color-accent-2)', 'var(--color-gold)', 'var(--color-success)'];
-    slot('skills').replaceChildren.apply(slot('skills'), skills.map(function (s, i) {
-      var icon = el('span', { class: 'slot-icon', 'aria-hidden': 'true', text: skillIcon(s) });
-      icon.style.setProperty('--slot-color', slotColors[i % slotColors.length]);
-      return el('li', { class: 'slot' }, [icon, el('span', { text: s })]);
-    }));
+    fill('skills', skills.map(function (s) { return el('li', { text: s }); }));
 
-    // Projects
-    var projects = (data.projects || []).filter(function (pr) { return pr && pr.title; });
+    // Projects: level select
     hideSection('projects', projects.length === 0);
-    slot('projects').replaceChildren.apply(slot('projects'), projects.map(function (pr, i) {
-      var img = safeUrl(pr.image);
-      var media = el('div', { class: 'project-media' + (img ? '' : ' no-image') }, [
-        img
-          ? el('img', { src: img, alt: 'Screenshot of ' + pr.title, loading: 'lazy', width: '640', height: '400' })
-          : el('span', { class: 'project-media-letter', 'aria-hidden': 'true', text: pr.title.trim()[0] || '?' }),
-        el('span', { class: 'quest-tag pixel', 'aria-hidden': 'true', text: 'Quest ' + pad(i + 1) })
-      ]);
+    fill('projects', projects.map(function (pr, i) {
+      var live = safeUrl(pr.live), repo = safeUrl(pr.repo), img = safeUrl(pr.image);
+      var primary = live || repo;
       var tech = (pr.tech || []).filter(Boolean);
       var links = [];
-      if (safeUrl(pr.live)) links.push(externalLink(safeUrl(pr.live), 'View project ▶'));
-      if (safeUrl(pr.repo)) links.push(externalLink(safeUrl(pr.repo), 'Source code ▶'));
-      return el('article', { class: 'project-card panel reveal' }, [
-        media,
-        el('div', { class: 'project-body' }, [
-          el('h3', { text: pr.title }),
-          pr.description ? el('p', { text: pr.description }) : null,
-          tech.length ? el('ul', { class: 'tags', 'aria-label': 'Technologies' }, tech.map(function (t) { return el('li', { text: t }); })) : null,
-          links.length ? el('div', { class: 'project-links' }, links) : null
+      if (live) links.push(link(live, 'Open project ↗'));
+      if (repo) links.push(link(repo, 'Source ↗'));
+      return el('li', { class: 'level' }, [
+        el('span', { class: 'level-num', 'aria-hidden': 'true', text: pad(i + 1) }),
+        el('div', { class: 'level-info' }, [
+          el('h3', null, [primary ? link(primary, pr.title) : el('span', { text: pr.title })]),
+          pr.description ? el('p', { class: 'level-desc', text: pr.description }) : null,
+          tech.length ? el('p', { class: 'level-meta' }, [el('b', { text: 'Made with ' }), tech.join(', ')]) : null,
+          links.length ? el('div', { class: 'level-links' }, links) : null
+        ]),
+        img ? el('div', { class: 'level-thumb' }, [el('img', { src: img, alt: 'Screenshot of ' + pr.title, loading: 'lazy', width: '640', height: '400' })]) : null
+      ]);
+    }));
+
+    // Experience
+    hideSection('experience', exp.length === 0);
+    fill('experience', exp.map(function (x) {
+      var points = lines(x.description);
+      return el('li', { class: 'log-row' }, [
+        el('div', { class: 'log-date' }, [x.period || '', isCurrent(x.period) ? el('span', { class: 'now', text: '● Current' }) : null]),
+        el('div', null, [
+          el('h3', { text: x.role || x.org }),
+          el('p', { class: 'log-org', text: [x.role ? x.org : '', x.location].filter(Boolean).join(', ') }),
+          points.length > 1
+            ? el('ul', null, points.map(function (l) { return el('li', { text: l }); }))
+            : points.length ? el('p', { class: 'log-text', text: points[0] }) : null
         ])
       ]);
     }));
 
-    // Hero actions
-    var actions = [];
-    if (projects.length) actions.push(el('a', { class: 'btn btn-primary', href: '#projects', text: '▶ View my work' }));
-    if (safeUrl(p.resume)) {
-      var resumeBtn = externalLink(safeUrl(p.resume), 'Resume');
-      resumeBtn.className = actions.length ? 'btn btn-ghost' : 'btn btn-primary';
-      actions.push(resumeBtn);
-    }
-    actions.push(el('a', { class: 'btn btn-ghost', href: '#contact', text: 'Contact me' }));
-    slot('actions').replaceChildren.apply(slot('actions'), actions);
-
-    // Experience
-    var exp = (data.experience || []).filter(function (x) { return x && (x.role || x.org); });
-    hideSection('experience', exp.length === 0);
-    slot('experience').replaceChildren.apply(slot('experience'), exp.map(function (x) {
-      var meta = [x.org, x.period, x.location].filter(Boolean).join(' · ');
-      var active = /present|current|now/i.test(x.period || '');
-      return el('li', { class: 'reveal' }, [
-        el('span', { class: 'quest-status pixel ' + (active ? 'is-active' : 'is-done'), text: active ? 'In progress' : 'Quest complete' }),
-        el('h3', { text: x.role || x.org }),
-        meta ? el('p', { class: 'meta', text: meta }) : null,
-        descriptionNode(x.description)
-      ]);
-    }));
-
     // Education & certifications
-    var edu = (data.education || []).filter(function (e) { return e && (e.degree || e.school); });
-    var certs = (data.certifications || []).filter(function (c) { return c && c.name; });
     hideSection('education', edu.length === 0 && certs.length === 0);
-    document.getElementById('education-title').textContent =
-      edu.length && certs.length ? 'Education & Certifications' : edu.length ? 'Education' : 'Certifications';
-    slot('education').replaceChildren.apply(slot('education'), edu.map(function (e) {
-      return el('li', { class: 'edu-item panel reveal' }, [
-        el('h3', { text: e.degree || e.school }),
-        el('p', { class: 'meta', text: [e.degree ? e.school : '', e.period].filter(Boolean).join(' · ') })
+    document.querySelector('#education-title .title-text').textContent = edu.length ? 'Education' : 'Certifications';
+    fill('education', edu.map(function (e) {
+      return el('li', { class: 'log-row' }, [
+        el('div', { class: 'log-date', text: e.period || '' }),
+        el('div', null, [
+          el('h3', { text: e.degree || e.school }),
+          e.degree && e.school ? el('p', { class: 'log-org', text: e.school }) : null
+        ])
       ]);
     }));
-    slot('certifications').replaceChildren.apply(slot('certifications'), certs.length ? [
-      edu.length ? el('h3', { class: 'certs-title', text: 'Certifications' }) : null,
-      el('ul', { class: 'cert-list' }, certs.map(function (c) {
-        return el('li', { class: 'reveal' }, [
-          trophy(),
-          el('span', { class: 'cert-text' }, [
-            el('span', { class: 'cert-kicker', 'aria-hidden': 'true', text: 'Achievement unlocked' }),
-            el('span', { text: c.name }),
-            c.issuer ? el('span', { class: 'meta', text: c.issuer }) : null
-          ])
-        ]);
+    fill('certifications', certs.length ? [
+      edu.length ? el('h3', { class: 'badges-title', text: 'Certifications' }) : null,
+      el('ul', { class: 'badges' }, certs.map(function (c) {
+        return el('li', null, [trophy(), el('span', null, [c.name, c.issuer ? el('span', { class: 'meta', text: ', ' + c.issuer }) : null])]);
       }))
     ] : []);
 
-    // Player stats (all derived from real content)
-    var stats = [];
-    var xp = experienceLength(exp);
-    if (xp) stats.push(['Years of XP', xp]);
-    if (projects.length) stats.push(['Quests', String(projects.length)]);
-    if (skills.length) stats.push(['Skills unlocked', String(skills.length)]);
-    if (certs.length) stats.push(['Achievements', String(certs.length)]);
-    slot('stats').replaceChildren.apply(slot('stats'), stats.map(function (s) {
-      return el('div', { class: 'stat' }, [el('dt', { text: s[0] }), el('dd', { text: s[1] })]);
-    }));
+    // Contact
+    fill('contact', [
+      p.email ? el('p', { class: 'contact-intro', text: 'Email is the quickest way to reach me.' }) : null,
+      p.email ? el('a', { class: 'big-email', href: 'mailto:' + p.email, text: p.email }) : null,
+      socials.length ? el('ul', { class: 'contact-links' }, socials.map(function (s) {
+        return el('li', null, [link(safeUrl(s.url), s.label + ' ↗')]);
+      })) : null
+    ]);
 
-    // Level numbers follow the visible sections, so hidden ones don't leave gaps.
-    var level = 0;
+    // Stage numbers (1-1, 1-2, …) follow the visible sections so hidden ones leave no gaps.
+    var stage = 0;
     document.querySelectorAll('main > section.section').forEach(function (section) {
-      var tag = section.querySelector('.level-tag');
+      var tag = section.querySelector('.stage');
       if (section.hidden) { delete section.dataset.level; return; }
-      level += 1;
-      section.dataset.level = level;
-      if (tag) tag.textContent = 'Level ' + pad(level) + ' · ' + tag.getAttribute('data-level-name');
+      stage += 1;
+      section.dataset.level = stage;
+      if (tag) tag.textContent = '1-' + stage;
     });
 
     renderStructuredData(data);
-
-    // Contact
-    var contact = [];
-    if (p.email) contact.push(el('a', { class: 'btn btn-primary', href: 'mailto:' + p.email, text: 'Email me' }));
-    socials.forEach(function (s) {
-      var a = externalLink(safeUrl(s.url), s.label);
-      a.className = 'btn btn-ghost';
-      contact.push(a);
-    });
-    slot('contact').replaceChildren.apply(slot('contact'), contact);
-  }
-
-  function pad(n) { return (n < 10 ? '0' : '') + n; }
-
-  function skillIcon(name) {
-    var words = name.replace(/[^\w\s.+#]/g, ' ').trim().split(/\s+/).filter(Boolean);
-    if (!words.length) return '?';
-    var text = words.length > 1 ? words[0][0] + words[1][0] : words[0].slice(0, 2);
-    return text.toUpperCase();
-  }
-
-  function trophy() {
-    var ns = 'http://www.w3.org/2000/svg';
-    var svg = document.createElementNS(ns, 'svg');
-    svg.setAttribute('viewBox', '0 0 16 16');
-    svg.setAttribute('class', 'trophy');
-    svg.setAttribute('aria-hidden', 'true');
-    svg.setAttribute('shape-rendering', 'crispEdges');
-    var path = document.createElementNS(ns, 'path');
-    path.setAttribute('fill', 'currentColor');
-    path.setAttribute('fill-rule', 'evenodd');
-    path.setAttribute('d', 'M4 1h8v2h3v4h-1v1h-2v1h-1v2h-1v1h2v3H4v-3h2v-1H5V9H4V8H2V7H1V3h3zM2 4h2v2H2zm10 0h2v2h-2z');
-    svg.appendChild(path);
-    return svg;
-  }
-
-  // "2+" years from the earliest start date found in experience periods (e.g. "Aug 2024 – Present").
-  function experienceLength(items) {
-    var months = 'jan feb mar apr may jun jul aug sep oct nov dec'.split(' ');
-    var earliest = null;
-    items.forEach(function (x) {
-      var m = String(x.period || '').match(/(?:([a-z]{3})[a-z]*\.?\s+)?(\d{4})/i);
-      if (!m) return;
-      var mi = m[1] ? months.indexOf(m[1].toLowerCase()) : 0;
-      var d = new Date(Number(m[2]), mi < 0 ? 0 : mi, 1);
-      if (!earliest || d < earliest) earliest = d;
-    });
-    if (!earliest) return '';
-    var total = (new Date().getFullYear() - earliest.getFullYear()) * 12 + new Date().getMonth() - earliest.getMonth();
-    if (total < 1) return '';
-    return total < 12 ? total + ' mo' : Math.floor(total / 12) + '+';
-  }
-
-  // Multi-line descriptions become bullet lists; single lines stay a paragraph.
-  function descriptionNode(text) {
-    var lines = String(text || '').split('\n').map(function (l) { return l.replace(/^\s*[•\-*]\s*/, '').trim(); }).filter(Boolean);
-    if (!lines.length) return null;
-    if (lines.length === 1) return el('p', { text: lines[0] });
-    return el('ul', { class: 'bullets' }, lines.map(function (l) { return el('li', { text: l }); }));
   }
 
   // schema.org Person data, read by search engines and recruiting tools.
   function renderStructuredData(data) {
     var p = data.profile || {};
     var socials = (data.socials || []).map(function (s) { return safeUrl(s && s.url); }).filter(function (u) { return /^https?:/i.test(u); });
-    var current = (data.experience || []).find(function (x) { return x && /present/i.test(x.period || ''); });
+    var current = (data.experience || []).find(function (x) { return x && isCurrent(x.period); });
     var person = {
       '@context': 'https://schema.org',
       '@type': 'Person',
@@ -298,24 +268,19 @@
 
   function setupTheme() {
     var btn = document.querySelector('.theme-toggle');
+    var root = document.documentElement;
+    function label() {
+      var dark = root.dataset.theme !== 'light';
+      btn.textContent = dark ? 'Lights on' : 'Lights off';
+      btn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+    }
     btn.addEventListener('click', function () {
-      var root = document.documentElement;
-      var current = root.dataset.theme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      var next = current === 'dark' ? 'light' : 'dark';
+      var next = root.dataset.theme === 'light' ? 'dark' : 'light';
       root.dataset.theme = next;
       try { localStorage.setItem('theme', next); } catch (e) {}
+      label();
     });
-  }
-
-  function setupReveal() {
-    var items = document.querySelectorAll('.reveal');
-    if (!('IntersectionObserver' in window)) { items.forEach(function (n) { n.classList.add('is-visible'); }); return; }
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) { entry.target.classList.add('is-visible'); io.unobserve(entry.target); }
-      });
-    }, { rootMargin: '0px 0px -40px 0px' });
-    items.forEach(function (n) { io.observe(n); });
+    label();
   }
 
   setupNav();
@@ -323,10 +288,10 @@
 
   fetch('content/content.json?v=' + Date.now(), { cache: 'no-store' })
     .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
-    .then(function (data) { render(data); setupReveal(); document.dispatchEvent(new CustomEvent('portfolio:rendered')); })
+    .then(function (data) { render(data); document.dispatchEvent(new CustomEvent('portfolio:rendered')); })
     .catch(function (err) {
       console.error('Could not load content:', err);
-      slot('about').replaceChildren(el('p', { text: 'Content could not be loaded. Please refresh the page.' }));
+      fill('about', [el('p', { text: 'Content could not be loaded. Please refresh the page.' })]);
     })
     .finally(function () { document.body.classList.remove('is-loading'); });
 })();
