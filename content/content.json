@@ -11,9 +11,18 @@
     "resume": "resume.html"
   },
   "socials": [
-    { "label": "LinkedIn", "url": "https://www.linkedin.com/in/saathvik-daravath" },
-    { "label": "ArtStation", "url": "https://saathvik.artstation.com/" },
-    { "label": "GitHub", "url": "https://github.com/SaathvikIsCoding" }
+    {
+      "label": "LinkedIn",
+      "url": "https://www.linkedin.com/in/saathvik-daravath"
+    },
+    {
+      "label": "ArtStation",
+      "url": "https://saathvik.artstation.com/"
+    },
+    {
+      "label": "GitHub",
+      "url": "https://github.com/SaathvikIsCoding"
+    }
   ],
   "skills": [
     "Game Design",
@@ -42,19 +51,73 @@
       "id": "game-art-3d-environments",
       "title": "Game Art & 3D Environments",
       "description": "Academic and independent work in game art, 3D environments and interactive storytelling, collected on ArtStation.",
-      "tech": ["Unreal Engine 5", "Autodesk Maya", "Adobe Photoshop"],
+      "role": "",
+      "period": "",
+      "tech": [
+        "Unreal Engine 5",
+        "Autodesk Maya",
+        "Adobe Photoshop"
+      ],
       "image": "",
       "live": "https://saathvik.artstation.com/",
-      "repo": ""
+      "repo": "",
+      "process": "",
+      "sections": [
+        {
+          "type": "images-1",
+          "heading": "",
+          "text": "",
+          "images": [
+            {
+              "src": "assets/uploads/1790414239641-1-images-2.webp",
+              "caption": ""
+            }
+          ]
+        },
+        {
+          "type": "images-4",
+          "heading": "",
+          "text": "",
+          "images": [
+            {
+              "src": "assets/uploads/1790414249628-2-chatgpt-image-sep-25-2026-01-37-47-pm.webp",
+              "caption": ""
+            },
+            {
+              "src": "assets/uploads/1790414251684-3-25333569.webp",
+              "caption": ""
+            },
+            {
+              "src": "assets/uploads/1790414254183-4-devi-1-articlelarge.webp",
+              "caption": ""
+            },
+            {
+              "src": "assets/uploads/1790414256378-5-images-3.webp",
+              "caption": ""
+            }
+          ]
+        }
+      ],
+      "gallery": []
     },
     {
       "id": "portfolio-website",
       "title": "Portfolio Website",
       "description": "Responsive personal portfolio with a built-in admin panel for editing content and an auto-generated ATS-friendly resume, deployed on GitHub Pages.",
-      "tech": ["HTML", "CSS", "JavaScript", "GitHub API"],
+      "role": "",
+      "period": "",
+      "tech": [
+        "HTML",
+        "CSS",
+        "JavaScript",
+        "GitHub API"
+      ],
       "image": "",
       "live": "",
-      "repo": "https://github.com/SaathvikIsCoding/portfolio"
+      "repo": "https://github.com/SaathvikIsCoding/portfolio",
+      "process": "",
+      "sections": [],
+      "gallery": []
     }
   ],
   "experience": [
@@ -86,8 +149,29 @@
     }
   ],
   "certifications": [
-    { "id": "introduction-to-rigging-in-maya", "name": "Introduction to Rigging in Maya", "issuer": "" },
-    { "id": "unreal-engine-5-creating-cinematic-car-scenes", "name": "Unreal Engine 5: Creating Cinematic Car Scenes", "issuer": "" },
-    { "id": "introduction-to-creative-coding-with-p5-js", "name": "Introduction to Creative Coding with p5.js", "issuer": "" }
+    {
+      "id": "introduction-to-rigging-in-maya",
+      "name": "Introduction to Rigging in Maya",
+      "issuer": "",
+      "date": "",
+      "url": "",
+      "file": ""
+    },
+    {
+      "id": "unreal-engine-5-creating-cinematic-car-scenes",
+      "name": "Unreal Engine 5: Creating Cinematic Car Scenes",
+      "issuer": "",
+      "date": "",
+      "url": "",
+      "file": ""
+    },
+    {
+      "id": "introduction-to-creative-coding-with-p5-js",
+      "name": "Introduction to Creative Coding with p5.js",
+      "issuer": "",
+      "date": "",
+      "url": "",
+      "file": ""
+    }
   ]
 }
