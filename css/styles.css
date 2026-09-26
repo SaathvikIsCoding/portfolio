@@ -333,6 +333,15 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
 }
 .pixel-btn-primary:hover { --fill: var(--color-accent-strong); --edge: var(--color-accent-strong); --ink: var(--color-on-accent); }
 .pixel-btn:active { transform: translateY(var(--px)); --depth: transparent; }
+/* Small variant for secondary links (e.g. "Find me on") */
+.pixel-btn-sm {
+  --px: 3px;
+  --edge: var(--color-muted);
+  --ink: var(--color-muted);
+  min-height: 40px;
+  padding: 0 0.85rem;
+  font-size: 0.55rem;
+}
 
 /* ---------- Hero ---------- */
 .hero {
@@ -421,9 +430,9 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0 var(--space-5);
-  margin-top: var(--space-5);
-  padding-top: var(--space-3);
+  gap: var(--space-3) var(--space-5);
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
   max-width: 34rem;
   border-top: 4px solid transparent;
   border-image: var(--dash-rule) 4;
@@ -432,24 +441,12 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
 .social-label { font-size: 0.55rem; color: var(--color-accent-2); }
 .social-list {
   list-style: none;
-  padding: 0;
+  padding: 3px 3px 6px; /* room for the small buttons' outline and ledge */
   margin: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 0 var(--space-5);
+  gap: var(--space-4);
 }
-.social-list a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  color: var(--color-muted);
-  text-decoration: none;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1rem;
-}
-.social-list a::after { content: "↗"; margin-left: 0.3em; color: var(--color-accent); }
-.social-list a:hover { color: var(--color-accent); }
 
 /* Character-select frame */
 .char-frame {

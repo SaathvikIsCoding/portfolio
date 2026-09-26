@@ -71,7 +71,9 @@
     // Socials
     var socials = (data.socials || []).filter(function (s) { return s && s.label && safeUrl(s.url); });
     slot('socials').replaceChildren.apply(slot('socials'), socials.map(function (s) {
-      return el('li', null, [externalLink(safeUrl(s.url), s.label)]);
+      var a = externalLink(safeUrl(s.url), s.label);
+      a.className = 'pixel-btn pixel-btn-sm';
+      return el('li', null, [a]);
     }));
 
     // About
