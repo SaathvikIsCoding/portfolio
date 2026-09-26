@@ -4,20 +4,34 @@
     "role": "Web Developer",
     "tagline": "I build fast, responsive websites and web apps that look good on every screen.",
     "about": "[Write a few lines about yourself: what you do, what you enjoy building, and what you're learning right now.]\n\n[Add a second paragraph if you like: your background, education, or what kind of work you're looking for.]",
-    "photo": "",
+    "photo": "assets/uploads/1790403971779-untitled-77.webp",
     "location": "",
     "email": "",
     "resume": ""
   },
   "socials": [
-    { "label": "GitHub", "url": "https://github.com/SaathvikIsCoding" }
+    {
+      "label": "GitHub",
+      "url": "https://github.com/SaathvikIsCoding"
+    }
   ],
-  "skills": ["HTML", "CSS", "JavaScript", "Responsive Design", "Git & GitHub"],
+  "skills": [
+    "HTML",
+    "CSS",
+    "JavaScript",
+    "Responsive Design",
+    "Git & GitHub"
+  ],
   "projects": [
     {
       "title": "Portfolio Website",
       "description": "This site: a responsive portfolio with a built-in admin panel for editing content, deployed on GitHub Pages.",
-      "tech": ["HTML", "CSS", "JavaScript", "GitHub API"],
+      "tech": [
+        "HTML",
+        "CSS",
+        "JavaScript",
+        "GitHub API"
+      ],
       "image": "",
       "live": "",
       "repo": "https://github.com/SaathvikIsCoding/portfolio"
@@ -25,7 +39,9 @@
     {
       "title": "[Project name]",
       "description": "[One or two lines on what it does and what you built.]",
-      "tech": ["[Tech]"],
+      "tech": [
+        "[Tech]"
+      ],
       "image": "",
       "live": "",
       "repo": ""
