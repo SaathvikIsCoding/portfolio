@@ -537,26 +537,7 @@
     }
   });
 
-  // ---------- Quest-card tilt ----------
-  function setupTilt() {
-    if (!finePointer || reduceMotion) return;
-    document.addEventListener('pointermove', function (e) {
-      var card = e.target.closest && e.target.closest('.project-card');
-      document.querySelectorAll('.project-card.is-tilting').forEach(function (c) {
-        if (c !== card) { c.classList.remove('is-tilting'); c.style.transform = ''; c.style.transition = ''; }
-      });
-      if (!card) return;
-      var r = card.getBoundingClientRect();
-      var px = (e.clientX - r.left) / r.width - 0.5;
-      var py = (e.clientY - r.top) / r.height - 0.5;
-      card.classList.add('is-tilting');
-      card.style.transition = 'transform 0.08s linear, box-shadow 0.2s ease';
-      card.style.transform = 'perspective(800px) rotateX(' + (-py * 8).toFixed(2) + 'deg) rotateY(' + (px * 8).toFixed(2) + 'deg) translateY(-4px)';
-    }, { passive: true });
-  }
-
   // ---------- Boot ----------
-  setupTilt();
   readColors();
   resize();
   window.addEventListener('resize', resize);

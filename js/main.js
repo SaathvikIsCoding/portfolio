@@ -133,31 +133,35 @@
     actions.push(el('a', { class: 'btn btn-ghost', href: '#contact', text: 'Contact me' }));
     slot('actions').replaceChildren.apply(slot('actions'), actions);
 
-    // Experience
+    // Experience and education share one quest-log timeline entry.
+    function logEntry(title, details, period, description) {
+      var active = /present|current|now/i.test(period || '');
+      var meta = details.filter(Boolean).join(', ');
+      return el('li', { class: 'reveal' }, [
+        el('div', { class: 'log-head' }, [
+          el('span', { class: 'quest-status pixel ' + (active ? 'is-active' : 'is-done'), text: active ? 'In progress' : 'Completed' }),
+          period ? el('span', { class: 'log-date pixel', text: period }) : null
+        ]),
+        el('h3', { text: title }),
+        meta ? el('p', { class: 'meta', text: meta }) : null,
+        descriptionNode(description)
+      ]);
+    }
+
     var exp = (data.experience || []).filter(function (x) { return x && (x.role || x.org); });
     hideSection('experience', exp.length === 0);
     slot('experience').replaceChildren.apply(slot('experience'), exp.map(function (x) {
-      var meta = [x.org, x.period, x.location].filter(Boolean).join(' · ');
-      var active = /present|current|now/i.test(x.period || '');
-      return el('li', { class: 'reveal' }, [
-        el('span', { class: 'quest-status pixel ' + (active ? 'is-active' : 'is-done'), text: active ? 'In progress' : 'Quest complete' }),
-        el('h3', { text: x.role || x.org }),
-        meta ? el('p', { class: 'meta', text: meta }) : null,
-        descriptionNode(x.description)
-      ]);
+      return logEntry(x.role || x.org, [x.role ? x.org : '', x.location], x.period, x.description);
     }));
 
     // Education & certifications
     var edu = (data.education || []).filter(function (e) { return e && (e.degree || e.school); });
     var certs = (data.certifications || []).filter(function (c) { return c && c.name; });
     hideSection('education', edu.length === 0 && certs.length === 0);
-    document.getElementById('education-title').textContent =
-      edu.length && certs.length ? 'Education & Certifications' : edu.length ? 'Education' : 'Certifications';
+    // One heading per block: "Education" on top, "Certifications" as its own sub-heading.
+    document.getElementById('education-title').textContent = edu.length ? 'Education' : 'Certifications';
     slot('education').replaceChildren.apply(slot('education'), edu.map(function (e) {
-      return el('li', { class: 'edu-item panel reveal' }, [
-        el('h3', { text: e.degree || e.school }),
-        el('p', { class: 'meta', text: [e.degree ? e.school : '', e.period].filter(Boolean).join(' · ') })
-      ]);
+      return logEntry(e.degree || e.school, [e.degree ? e.school : ''], e.period, '');
     }));
     slot('certifications').replaceChildren.apply(slot('certifications'), certs.length ? [
       edu.length ? el('h3', { class: 'certs-title', text: 'Certifications' }) : null,
@@ -176,9 +180,10 @@
     var stats = [];
     var xp = experienceLength(exp);
     if (xp) stats.push(['Experience', xp, /mo$/.test(xp) ? '' : 'yrs']);
-    if (projects.length) stats.push(['Quests', pad(projects.length)]);
+    // Labels match the section names in the menu and headings.
+    if (projects.length) stats.push(['Projects', pad(projects.length)]);
     if (skills.length) stats.push(['Skills', pad(skills.length)]);
-    if (certs.length) stats.push(['Badges', pad(certs.length)]);
+    if (certs.length) stats.push(['Certifications', pad(certs.length)]);
     slot('stats').replaceChildren.apply(slot('stats'), stats.map(function (s) {
       return el('div', { class: 'stat' }, [
         el('dt', { text: s[0] }),
