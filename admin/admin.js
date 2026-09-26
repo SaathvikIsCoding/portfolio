@@ -100,7 +100,7 @@
       case 401: return 'GitHub rejected this token. It may be mistyped, revoked or expired.';
       case 403: return /rate limit/i.test(err.message)
         ? 'GitHub rate limit reached. Wait a few minutes and try again.'
-        : 'This token is not allowed to do that. Give it "Contents: Read and write" access to this repository.';
+        : 'This token can only read your repository. Edit it on GitHub: set Repository access to "Only select repositories" → your portfolio repo, then set Contents to "Read and write". Then sign in again.';
       case 404: return 'Repository or branch not found, or this token has no access to it. Check the repository settings and the token\'s repository access.';
       case 409: return 'The repository is empty. Push the site to GitHub first.';
       case 422: return /fast forward/i.test(err.message)
