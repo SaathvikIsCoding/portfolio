@@ -285,43 +285,54 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
   .game-toggle { display: none; }
 }
 
-/* ---------- Title-screen menu (hero + contact actions) ----------
-   Stacked items like a game's main menu; a blinking ▶ marks the selected one. */
-.title-menu {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  justify-items: start;
-  gap: var(--space-1);
+/* ---------- 8-bit pixel buttons (hero + contact actions) ----------
+   Drawn entirely with box-shadows: a 4px outline with stepped (notched) corners,
+   a light/dark bevel inside, and a ledge underneath that vanishes on click so the
+   button presses down like an arcade button. */
+.pixel-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5) var(--space-5);
+  padding: 4px; /* room for the outline */
 }
-.title-menu:empty { display: none; }
-.title-menu a {
-  position: relative;
+.pixel-btns:empty { display: none; }
+.pixel-btn {
+  --px: 4px;
+  --fill: var(--color-bg);
+  --edge: var(--color-text);
+  --ink: var(--color-text);
+  --depth: #3a3a3a;
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  padding-left: 2rem;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(1.2rem, 0.8vw + 1rem, 1.55rem);
-  letter-spacing: 0.05em;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 1.25rem;
+  font-family: var(--font-pixel);
+  font-size: 0.7rem;
+  line-height: 1;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   text-decoration: none;
-  color: var(--color-muted);
+  color: var(--ink);
+  background: var(--fill);
+  box-shadow:
+    inset 0 var(--px) 0 0 rgb(255 255 255 / 0.2),
+    inset 0 calc(-1 * var(--px)) 0 0 rgb(0 0 0 / 0.3),
+    0 calc(-1 * var(--px)) 0 0 var(--edge),
+    0 var(--px) 0 0 var(--edge),
+    calc(-1 * var(--px)) 0 0 0 var(--edge),
+    var(--px) 0 0 0 var(--edge),
+    0 calc(2 * var(--px)) 0 0 var(--depth);
 }
-.title-menu a[target="_blank"]::after { content: "↗"; margin-left: 0.4em; font-size: 0.8em; }
-.title-menu a::before {
-  content: "▶";
-  position: absolute;
-  left: 0.2rem;
-  font-size: 0.7em;
-  color: var(--color-accent-2);
-  visibility: hidden;
+.pixel-btn:hover { --edge: var(--color-accent); --ink: var(--color-accent); color: var(--ink); }
+.pixel-btn-primary {
+  --fill: var(--color-accent);
+  --edge: var(--color-accent);
+  --ink: var(--color-on-accent);
+  --depth: #0e7490;
 }
-.title-menu a.is-selected { color: var(--color-accent); }
-.title-menu a.is-selected::before { visibility: visible; animation: blink 1s steps(2, start) infinite; }
-.title-menu a:active { transform: translateX(4px); }
+.pixel-btn-primary:hover { --fill: var(--color-accent-strong); --edge: var(--color-accent-strong); --ink: var(--color-on-accent); }
+.pixel-btn:active { transform: translateY(var(--px)); --depth: transparent; }
 
 /* ---------- Hero ---------- */
 .hero {
@@ -403,7 +414,7 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
   color: var(--color-muted);
 }
 
-.hero-menu { margin-top: var(--space-6); }
+.hero-actions { margin-top: var(--space-6); }
 
 /* "Find me on" row, set off from the menu by the dashed pixel rule */
 .social-row {

@@ -122,12 +122,12 @@
       ]);
     }));
 
-    // Hero actions: title-screen menu
+    // Hero actions: 8-bit pixel buttons
     var actions = [];
     if (projects.length) actions.push(['#projects', 'View my work']);
     if (safeUrl(p.resume)) actions.push([safeUrl(p.resume), 'Resume']);
     actions.push(['#contact', 'Contact me']);
-    slot('actions').replaceChildren.apply(slot('actions'), menuItems(actions));
+    slot('actions').replaceChildren.apply(slot('actions'), pixelButtons(actions));
 
     // Experience and education share one quest-log timeline entry.
     function logEntry(title, details, period, description) {
@@ -199,40 +199,19 @@
 
     renderStructuredData(data);
 
-    // Contact: same title-screen menu
+    // Contact: same 8-bit pixel buttons
     var contact = [];
     if (p.email) contact.push(['mailto:' + p.email, 'Email me']);
     socials.forEach(function (s) { contact.push([safeUrl(s.url), s.label]); });
-    slot('contact').replaceChildren.apply(slot('contact'), menuItems(contact));
+    slot('contact').replaceChildren.apply(slot('contact'), pixelButtons(contact));
   }
 
-  // Title-screen menu items; the first one starts selected, like a game's main menu.
-  function menuItems(items) {
+  // 8-bit pixel buttons: the first is the filled main action, the rest are outlined.
+  function pixelButtons(items) {
     return items.map(function (item, i) {
       var a = externalLink(item[0], item[1]);
-      if (i === 0) a.classList.add('is-selected');
-      return el('li', null, [a]);
-    });
-  }
-
-  // The ▶ cursor follows the mouse and keyboard focus; ↑/↓ move between items.
-  function setupMenus() {
-    function select(link) {
-      var menu = link.closest('.title-menu');
-      menu.querySelectorAll('a.is-selected').forEach(function (a) { a.classList.remove('is-selected'); });
-      link.classList.add('is-selected');
-    }
-    function menuLink(e) { return e.target.closest && e.target.closest('.title-menu a'); }
-    document.addEventListener('mouseover', function (e) { var a = menuLink(e); if (a) select(a); });
-    document.addEventListener('focusin', function (e) { var a = menuLink(e); if (a) select(a); });
-    document.addEventListener('keydown', function (e) {
-      var a = menuLink(e);
-      if (!a || (e.key !== 'ArrowDown' && e.key !== 'ArrowUp')) return;
-      var links = Array.prototype.slice.call(a.closest('.title-menu').querySelectorAll('a'));
-      var next = links[(links.indexOf(a) + (e.key === 'ArrowDown' ? 1 : -1) + links.length) % links.length];
-      e.preventDefault();
-      next.focus();
-      select(next);
+      a.className = 'pixel-btn' + (i === 0 ? ' pixel-btn-primary' : '');
+      return a;
     });
   }
 
@@ -360,7 +339,6 @@
   }
 
   setupNav();
-  setupMenus();
 
   fetch('content/content.json?v=' + Date.now(), { cache: 'no-store' })
     .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
