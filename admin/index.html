@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://api.github.com; img-src 'self' data: blob: https:; script-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <title>Portfolio Admin</title>
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="admin.css">
+  <script src="admin.js" defer></script>
+</head>
+<body>
+  <!-- Login -->
+  <main class="login" id="login-view">
+    <form class="card login-card" id="login-form" novalidate>
+      <div class="login-head">
+        <img src="../assets/favicon.svg" alt="" width="40" height="40">
+        <div>
+          <h1>Portfolio admin</h1>
+          <p class="muted">Sign in with your GitHub access token to edit your site.</p>
+        </div>
+      </div>
+
+      <label class="field">
+        <span>GitHub access token</span>
+        <input type="password" id="login-token" autocomplete="current-password" spellcheck="false" required placeholder="github_pat_…">
+      </label>
+
+      <details class="repo-settings" id="repo-settings">
+        <summary>Repository settings</summary>
+        <div class="grid-2">
+          <label class="field"><span>GitHub username</span><input id="login-owner" spellcheck="false" required></label>
+          <label class="field"><span>Repository</span><input id="login-repo" spellcheck="false" required></label>
+        </div>
+        <label class="field"><span>Branch</span><input id="login-branch" spellcheck="false" required></label>
+      </details>
+
+      <label class="check"><input type="checkbox" id="login-remember"> Keep me signed in on this device</label>
+
+      <p class="form-error" id="login-error" role="alert" hidden></p>
+      <button class="btn btn-primary btn-block" type="submit" id="login-submit">Sign in</button>
+
+      <details class="help">
+        <summary>How do I get a token?</summary>
+        <ol>
+          <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">GitHub → New fine-grained token</a>.</li>
+          <li>Name it “Portfolio admin” and pick an expiration.</li>
+          <li>Under <b>Repository access</b>, choose <b>Only select repositories</b> and pick your portfolio repo.</li>
+          <li>Under <b>Permissions → Repository permissions</b>, set <b>Contents</b> to <b>Read and write</b>.</li>
+          <li>Click <b>Generate token</b>, copy it, and paste it above. Keep it private: anyone with it can edit your site.</li>
+        </ol>
+      </details>
+    </form>
+  </main>
+
+  <!-- Editor -->
+  <div class="app" id="app-view" hidden>
+    <header class="topbar">
+      <div class="topbar-title">
+        <strong>Portfolio admin</strong>
+        <span class="status" id="status" aria-live="polite"></span>
+      </div>
+      <div class="topbar-actions">
+        <a class="btn btn-ghost" href="../" target="_blank" rel="noopener">View site</a>
+        <button class="btn btn-ghost" type="button" id="logout">Sign out</button>
+        <button class="btn btn-primary" type="button" id="save" disabled>Save &amp; publish</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <nav class="tabs" aria-label="Sections" role="tablist">
+        <button role="tab" data-tab="profile" aria-selected="true">Profile</button>
+        <button role="tab" data-tab="links" aria-selected="false">Links</button>
+        <button role="tab" data-tab="skills" aria-selected="false">Skills</button>
+        <button role="tab" data-tab="projects" aria-selected="false">Projects</button>
+        <button role="tab" data-tab="experience" aria-selected="false">Experience</button>
+      </nav>
+      <main class="panel" id="panel" role="tabpanel"></main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>
