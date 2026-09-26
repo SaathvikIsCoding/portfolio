@@ -39,6 +39,7 @@
   ],
   "projects": [
     {
+      "id": "game-art-3d-environments",
       "title": "Game Art & 3D Environments",
       "description": "Academic and independent work in game art, 3D environments and interactive storytelling, collected on ArtStation.",
       "tech": ["Unreal Engine 5", "Autodesk Maya", "Adobe Photoshop"],
@@ -47,6 +48,7 @@
       "repo": ""
     },
     {
+      "id": "portfolio-website",
       "title": "Portfolio Website",
       "description": "Responsive personal portfolio with a built-in admin panel for editing content and an auto-generated ATS-friendly resume, deployed on GitHub Pages.",
       "tech": ["HTML", "CSS", "JavaScript", "GitHub API"],
@@ -84,8 +86,8 @@
     }
   ],
   "certifications": [
-    { "name": "Introduction to Rigging in Maya", "issuer": "" },
-    { "name": "Unreal Engine 5: Creating Cinematic Car Scenes", "issuer": "" },
-    { "name": "Introduction to Creative Coding with p5.js", "issuer": "" }
+    { "id": "introduction-to-rigging-in-maya", "name": "Introduction to Rigging in Maya", "issuer": "" },
+    { "id": "unreal-engine-5-creating-cinematic-car-scenes", "name": "Unreal Engine 5: Creating Cinematic Car Scenes", "issuer": "" },
+    { "id": "introduction-to-creative-coding-with-p5-js", "name": "Introduction to Creative Coding with p5.js", "issuer": "" }
   ]
 }

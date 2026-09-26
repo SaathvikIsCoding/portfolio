@@ -207,6 +207,27 @@ details > summary { cursor: pointer; font-weight: 600; min-height: 32px; display
   text-align: center;
 }
 .image-preview.wide { width: 192px; height: 120px; }
+.file-preview { display: grid; place-items: center; color: var(--accent); font-weight: 600; text-decoration: none; }
+.file-preview:hover { border-color: var(--accent); }
+
+/* Project gallery editor */
+.gallery-edit { display: grid; gap: 0.5rem; }
+.gallery-row {
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.gallery-thumb { width: 96px; height: 64px; object-fit: cover; border: 1px solid var(--border); background: var(--surface); }
+@media (max-width: 520px) {
+  .gallery-row { grid-template-columns: 72px 1fr; }
+  .gallery-row .item-tools { grid-column: 1 / -1; justify-content: flex-end; }
+  .gallery-thumb { width: 72px; height: 48px; }
+}
+
 .image-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .file-input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 

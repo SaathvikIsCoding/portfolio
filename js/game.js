@@ -450,7 +450,8 @@
     document.querySelectorAll('main > section[data-level]').forEach(function (s) {
       if (s.getBoundingClientRect().top < line) level = Number(s.dataset.level);
     });
-    hud.textContent = 'LVL ' + (level < 10 ? '0' : '') + level;
+    // Project/certificate pages set their own label (e.g. "Quest 01"); the home page shows the level.
+    hud.textContent = document.body.dataset.hud || 'LVL ' + (level < 10 ? '0' : '') + level;
     if (progress > 0.97) unlock('explorer');
   }
   function onScroll() {

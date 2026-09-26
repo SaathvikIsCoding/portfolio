@@ -121,7 +121,7 @@
       .concat(section('Experience', experience))
       .concat(section('Education', education))
       .concat(section('Certifications', [certs.length ? el('ul', null, certs.map(function (c) {
-        return el('li', { text: c.name + (c.issuer ? ', ' + c.issuer : '') });
+        return el('li', { text: [c.name, c.issuer, c.date].filter(Boolean).join(', ') });
       })) : null]))
       .concat(section('Projects', projects));
 

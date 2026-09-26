@@ -122,12 +122,17 @@
       socials: arr(d.socials).map((s) => ({ label: str(s && s.label), url: str(s && s.url) })),
       skills: arr(d.skills).map(str).filter(Boolean),
       projects: arr(d.projects).map((pr) => ({
+        id: str(pr && pr.id),
         title: str(pr && pr.title),
         description: str(pr && pr.description),
+        role: str(pr && pr.role),
+        period: str(pr && pr.period),
         tech: arr(pr && pr.tech).map(str).filter(Boolean),
         image: str(pr && pr.image),
         live: str(pr && pr.live),
-        repo: str(pr && pr.repo)
+        repo: str(pr && pr.repo),
+        process: str(pr && pr.process),
+        gallery: arr(pr && pr.gallery).map((g) => ({ src: str(g && g.src), caption: str(g && g.caption) }))
       })),
       experience: arr(d.experience).map((x) => ({
         role: str(x && x.role),
@@ -142,22 +147,48 @@
         period: str(e && e.period)
       })),
       certifications: arr(d.certifications).map((c) => ({
+        id: str(c && c.id),
         name: str(c && c.name),
-        issuer: str(c && c.issuer)
+        issuer: str(c && c.issuer),
+        date: str(c && c.date),
+        url: str(c && c.url),
+        file: str(c && c.file)
       }))
     };
   }
 
+  // Same rules as js/main.js on the public site, so project/certificate page links match.
+  function slugify(text) {
+    return String(text || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'item';
+  }
+
+  // Keeps an existing id (so links survive a rename); new items get one from their title.
+  function withIds(items, titleKey) {
+    const seen = new Set();
+    return items.map((item) => {
+      const base = slugify(item.id || item[titleKey]);
+      let id = base;
+      for (let n = 2; seen.has(id); n++) id = `${base}-${n}`;
+      seen.add(id);
+      return { ...item, id };
+    });
+  }
+
   function cleaned(c) {
     const trim = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v]));
+    const projects = c.projects.map((p) => ({
+      ...trim(p),
+      gallery: p.gallery.map(trim).filter((g) => g.src)
+    })).filter((p) => p.title);
     return {
       profile: trim(c.profile),
       socials: c.socials.map(trim).filter((s) => s.label && s.url),
       skills: c.skills.map((s) => s.trim()).filter(Boolean),
-      projects: c.projects.map(trim).filter((p) => p.title),
+      projects: withIds(projects, 'title'),
       experience: c.experience.map(trim).filter((x) => x.role || x.org),
       education: c.education.map(trim).filter((e) => e.degree || e.school),
-      certifications: c.certifications.map(trim).filter((x) => x.name)
+      certifications: withIds(c.certifications.map(trim).filter((x) => x.name), 'name')
     };
   }
 
@@ -207,6 +238,30 @@
     }
   }
 
+  const IMAGE_TYPES = 'image/jpeg,image/png,image/webp,image/gif,image/avif';
+  const MAX_PDF_BYTES = 10 * 1024 * 1024;
+  let uploadSeq = 0;
+
+  // Prepares a picked file for the next save and returns the repo path it will live at.
+  // Images are resized to WebP; PDFs (certificates) are kept as they are.
+  async function stageFile(file, { maxSize = 1600, allowPdf = false } = {}) {
+    let blob;
+    let ext;
+    if (allowPdf && file.type === 'application/pdf') {
+      if (file.size > MAX_PDF_BYTES) throw new Error('That PDF is over 10 MB. Please export a smaller one.');
+      blob = file;
+      ext = 'pdf';
+    } else {
+      ({ blob, ext } = await prepareImage(file, maxSize));
+    }
+    const path = `${UPLOAD_DIR}/${Date.now()}-${++uploadSeq}-${slug(file.name)}.${ext}`;
+    pending.set(path, blob);
+    previews.set(path, URL.createObjectURL(blob));
+    return path;
+  }
+
+  const isPdf = (path) => /\.pdf$/i.test(path || '');
+
   function blobToBase64(blob) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -236,7 +291,12 @@
       const head = await gh(`${base}/git/commits/${headSha}`);
 
       const data = cleaned(content);
-      const used = new Set([data.profile.photo, ...data.projects.map((p) => p.image)].filter(Boolean));
+      const used = new Set([
+        data.profile.photo,
+        ...data.projects.map((p) => p.image),
+        ...data.projects.flatMap((p) => p.gallery.map((g) => g.src)),
+        ...data.certifications.map((c) => c.file)
+      ].filter(Boolean));
       const tree = [];
       for (const [path, blob] of pending) {
         if (!used.has(path)) continue;
@@ -323,14 +383,16 @@
     return h('label', { class: 'field' }, h('span', { text: label }), input, opts.hint ? h('small', { text: opts.hint }) : null);
   }
 
-  function imagePicker(label, obj, key, { shape = '', maxSize = 1600 } = {}) {
+  // One image (or, with allowPdf, an image or PDF) stored at obj[key].
+  function imagePicker(label, obj, key, { shape = '', maxSize = 1600, allowPdf = false, hint } = {}) {
     const slot = h('span');
-    const fileInput = h('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp,image/gif,image/avif', class: 'file-input', tabindex: '-1', 'aria-hidden': 'true' });
+    const fileInput = h('input', { type: 'file', accept: IMAGE_TYPES + (allowPdf ? ',application/pdf' : ''), class: 'file-input', tabindex: '-1', 'aria-hidden': 'true' });
     const uploadBtn = h('button', { type: 'button', class: 'btn btn-ghost btn-sm', onclick: () => fileInput.click() });
     const removeBtn = h('button', {
       type: 'button', class: 'btn btn-danger btn-sm', text: 'Remove',
       onclick: () => { obj[key] = ''; markDirty(); refresh(); }
     });
+    const noun = allowPdf ? 'file' : 'image';
 
     fileInput.addEventListener('change', async () => {
       const file = fileInput.files[0];
@@ -338,33 +400,99 @@
       if (!file) return;
       try {
         uploadBtn.disabled = true;
-        const { blob, ext } = await prepareImage(file, maxSize);
-        const path = `${UPLOAD_DIR}/${Date.now()}-${slug(file.name)}.${ext}`;
-        pending.set(path, blob);
-        previews.set(path, URL.createObjectURL(blob));
-        obj[key] = path;
+        obj[key] = await stageFile(file, { maxSize, allowPdf });
         markDirty();
         refresh();
       } catch (e) {
-        toast(e && e.message ? e.message : 'Could not read that image.', true);
+        toast(e && e.message ? e.message : `Could not read that ${noun}.`, true);
       } finally {
         uploadBtn.disabled = false;
       }
     });
 
     function refresh() {
-      const src = previewSrc(obj[key]);
-      slot.replaceChildren(src
-        ? h('img', { class: `image-preview ${shape}`, src, alt: '' })
-        : h('div', { class: `image-preview ${shape}`, text: 'No image' }));
-      uploadBtn.textContent = obj[key] ? 'Change image' : 'Upload image';
-      removeBtn.hidden = !obj[key];
+      const path = obj[key];
+      const src = previewSrc(path);
+      let preview;
+      if (src && isPdf(path)) {
+        preview = h('a', { class: `image-preview file-preview ${shape}`, href: src, target: '_blank', rel: 'noopener', text: 'PDF · open ↗' });
+      } else if (src) {
+        preview = h('img', { class: `image-preview ${shape}`, src, alt: '' });
+      } else {
+        preview = h('div', { class: `image-preview ${shape}`, text: `No ${noun}` });
+      }
+      slot.replaceChildren(preview);
+      uploadBtn.textContent = path ? `Change ${noun}` : `Upload ${noun}`;
+      removeBtn.hidden = !path;
     }
     refresh();
 
     return h('div', { class: 'field' },
       h('span', { text: label }),
-      h('div', { class: 'image-picker' }, slot, h('div', { class: 'image-actions' }, uploadBtn, removeBtn, fileInput)));
+      h('div', { class: 'image-picker' }, slot, h('div', { class: 'image-actions' }, uploadBtn, removeBtn, fileInput)),
+      hint ? h('small', { text: hint }) : null);
+  }
+
+  // Several images with captions (project gallery): add many at once, reorder, remove.
+  function galleryEditor(p) {
+    const list = h('div', { class: 'gallery-edit' });
+    const fileInput = h('input', { type: 'file', accept: IMAGE_TYPES, multiple: true, class: 'file-input', tabindex: '-1', 'aria-hidden': 'true' });
+    const addBtn = h('button', { type: 'button', class: 'btn btn-ghost btn-sm', text: 'Add images', onclick: () => fileInput.click() });
+
+    fileInput.addEventListener('change', async () => {
+      const files = [...fileInput.files];
+      fileInput.value = '';
+      if (!files.length) return;
+      addBtn.disabled = true;
+      addBtn.textContent = 'Adding…';
+      for (const file of files) {
+        try {
+          p.gallery.push({ src: await stageFile(file, { maxSize: 2000 }), caption: '' });
+        } catch (e) {
+          toast(`${file.name}: ${e && e.message ? e.message : 'could not read this image.'}`, true);
+        }
+      }
+      addBtn.disabled = false;
+      addBtn.textContent = 'Add images';
+      markDirty();
+      draw();
+    });
+
+    function row(g, i) {
+      const caption = h('input', { type: 'text', placeholder: 'Caption (optional)', 'aria-label': `Caption for image ${i + 1}` });
+      caption.value = g.caption;
+      caption.addEventListener('input', () => { g.caption = caption.value; markDirty(); });
+      const move = (dir) => () => {
+        const j = i + dir;
+        if (j < 0 || j >= p.gallery.length) return;
+        [p.gallery[i], p.gallery[j]] = [p.gallery[j], p.gallery[i]];
+        markDirty();
+        draw();
+      };
+      return h('div', { class: 'gallery-row' },
+        h('img', { class: 'gallery-thumb', src: previewSrc(g.src), alt: '' }),
+        caption,
+        h('div', { class: 'item-tools' },
+          h('button', { type: 'button', class: 'btn btn-ghost btn-sm btn-icon', 'aria-label': 'Move up', title: 'Move up', text: '↑', disabled: i === 0, onclick: move(-1) }),
+          h('button', { type: 'button', class: 'btn btn-ghost btn-sm btn-icon', 'aria-label': 'Move down', title: 'Move down', text: '↓', disabled: i === p.gallery.length - 1, onclick: move(1) }),
+          h('button', {
+            type: 'button', class: 'btn btn-danger btn-sm btn-icon', 'aria-label': 'Remove image', title: 'Remove', text: '✕',
+            onclick: () => { p.gallery.splice(i, 1); markDirty(); draw(); }
+          })));
+    }
+
+    function draw() {
+      list.replaceChildren(...(p.gallery.length
+        ? p.gallery.map(row)
+        : [h('p', { class: 'muted', text: 'No images yet.' })]));
+    }
+    draw();
+
+    return h('div', { class: 'field' },
+      h('span', { text: 'Gallery' }),
+      h('small', { text: 'Screenshots, sketches, work-in-progress shots. Shown on the project page, where visitors can click to view them full size. You can pick several at once.' }),
+      list,
+      h('div', { class: 'image-actions' }, addBtn, fileInput));
   }
 
   const card = (...children) => h('div', { class: 'card section-card' }, ...children);
@@ -517,20 +645,29 @@
     projects() {
       return repeatable(content.projects, {
         title: 'Projects',
-        intro: 'Your work. The first project appears first on your site.',
+        intro: 'Your work. Each project gets its own page with your process and gallery. The first project appears first on your site.',
         addText: 'Add project',
         emptyText: 'No projects yet. Click "Add project" to add your first one.',
-        create: () => ({ title: '', description: '', tech: [], image: '', live: '', repo: '' }),
+        create: () => ({ id: '', title: '', description: '', role: '', period: '', tech: [], image: '', live: '', repo: '', process: '', gallery: [] }),
         summary: (p) => p.title || 'Untitled project',
         body: (p, refresh) => [
           field('Project name', p, 'title', { onChange: refresh }),
-          field('Description', p, 'description', { multiline: true, rows: 4, hint: 'What it does and what you built. 1–3 sentences works best.' }),
-          listField('Technologies', p, 'tech', { placeholder: 'React, Node.js, MongoDB', hint: 'Separate with commas.' }),
+          field('Short summary', p, 'description', { multiline: true, rows: 3, hint: 'Shown on the project card and at the top of its page. 1–2 sentences.' }),
           grid2(
-            field('Live site URL', p, 'live', { type: 'url', placeholder: 'https://…' }),
-            field('Source code URL', p, 'repo', { type: 'url', placeholder: 'https://github.com/…' })
+            field('Your role', p, 'role', { placeholder: 'e.g. Level designer, solo project' }),
+            field('When', p, 'period', { placeholder: 'e.g. Jan – Apr 2025' })
           ),
-          imagePicker('Screenshot', p, 'image', { shape: 'wide', maxSize: 1600 })
+          listField('Tools / technologies', p, 'tech', { placeholder: 'Unreal Engine 5, Maya, Photoshop', hint: 'Separate with commas.' }),
+          grid2(
+            field('Live / portfolio link', p, 'live', { type: 'url', placeholder: 'https://…' }),
+            field('Source code link', p, 'repo', { type: 'url', placeholder: 'https://github.com/…' })
+          ),
+          imagePicker('Cover image', p, 'image', { shape: 'wide', maxSize: 2000, hint: 'Shown on the card and at the top of the project page.' }),
+          field('The process', p, 'process', {
+            multiline: true, rows: 12,
+            hint: 'Walk visitors through how you made it: the brief, research, sketches, iterations, problems you solved, what you learned. Leave an empty line between paragraphs. Start a line with "## " for a sub-heading and "- " for a bullet point.'
+          }),
+          galleryEditor(p)
         ]
       });
     },
@@ -581,16 +718,24 @@
     certifications() {
       return repeatable(content.certifications, {
         title: 'Certifications',
-        intro: 'Courses and certificates you have completed.',
+        intro: 'Courses and certificates you have completed. Each one gets its own page on your site.',
         addText: 'Add certification',
         emptyText: 'No certifications yet.',
-        create: () => ({ name: '', issuer: '' }),
+        create: () => ({ id: '', name: '', issuer: '', date: '', url: '', file: '' }),
         summary: (c) => c.name || 'New certification',
         body: (c, refresh) => [
           grid2(
             field('Certificate name', c, 'name', { onChange: refresh }),
             field('Issued by', c, 'issuer', { placeholder: 'e.g. Coursera, Udemy, Epic Games' })
-          )
+          ),
+          grid2(
+            field('Date', c, 'date', { placeholder: 'e.g. Mar 2024' }),
+            field('Credential link', c, 'url', { type: 'url', placeholder: 'https://… (optional verify link)' })
+          ),
+          imagePicker('Certificate', c, 'file', {
+            shape: 'wide', maxSize: 2400, allowPdf: true,
+            hint: 'Upload the certificate as an image (JPG/PNG) or a PDF up to 10 MB. Visitors see it on the certificate page.'
+          })
         ]
       });
     }

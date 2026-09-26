@@ -307,6 +307,8 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
   justify-content: center;
   min-height: 48px;
   padding: 0 1.25rem;
+  border: 0;
+  cursor: pointer;
   font-family: var(--font-pixel);
   font-size: 0.7rem;
   line-height: 1;
@@ -698,6 +700,11 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
   text-decoration: none;
 }
 .project-links a:hover { text-decoration: underline; }
+/* "Open quest" covers the whole card, so a click anywhere opens the project page;
+   the Live/Source links sit above it and still work on their own. */
+.project-links .quest-open { color: var(--color-accent-2); }
+.project-links .quest-open::after { content: ""; position: absolute; inset: 0; }
+.project-links a:not(.quest-open) { position: relative; z-index: 1; }
 
 /* Experience & education: the same quest-log timeline */
 .timeline {
@@ -794,6 +801,111 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
   line-height: 1.4;
 }
 .cert-list .meta { margin-top: var(--space-1); color: var(--color-muted); font-size: 0.9rem; }
+
+/* Each trophy + plank + name is one link to its certificate page */
+.cert-link {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+}
+.cert-link:hover .cert-name { color: var(--color-accent); }
+
+/* ---------- Project & certificate pages ---------- */
+.detail { padding-block: var(--space-6) var(--space-8); }
+.detail-back { margin-bottom: var(--space-6); }
+.detail-title {
+  font-size: clamp(2.2rem, 5vw + 1rem, 4rem);
+  line-height: 1.05;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+.detail-summary { margin: var(--space-4) 0 0; max-width: 60ch; font-size: 1.15rem; color: var(--color-muted); }
+.detail-meta {
+  margin: var(--space-6) 0 0;
+  padding: var(--space-5) 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: var(--space-5);
+  border-block: 4px solid transparent;
+  border-inline: 0;
+  border-image: var(--dash-rule) 4;
+}
+.detail-meta dt { font-family: var(--font-pixel); font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-accent-2); }
+.detail-meta dd { margin: var(--space-2) 0 0; font-weight: 600; }
+.detail-links { margin-top: var(--space-6); }
+.detail-cover { margin: var(--space-7) 0 0; }
+.detail-cover img { width: 100%; max-height: 70vh; object-fit: cover; border: 1px solid var(--color-border); }
+.detail-section { margin-top: var(--space-8); }
+
+.prose { max-width: 70ch; font-size: 1.075rem; }
+.prose p { margin: 0 0 var(--space-4); }
+.prose h3 { margin: var(--space-6) 0 var(--space-3); font-size: 1.35rem; text-transform: uppercase; }
+.prose ul { margin: 0 0 var(--space-4); padding-left: 1.25rem; list-style: none; display: grid; gap: var(--space-2); }
+.prose li { position: relative; }
+.prose li::before { content: ""; position: absolute; left: -1.1rem; top: 0.62em; width: 6px; height: 6px; background: var(--color-accent-2); }
+
+.gallery {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+}
+.gallery-item {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-muted);
+  font: inherit;
+  text-align: left;
+  cursor: zoom-in;
+  transition: transform var(--hop-timing);
+}
+.gallery-item:hover { transform: var(--hop); border-color: var(--color-accent); }
+.gallery-item img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.gallery-caption { display: block; padding: var(--space-3); font-size: 0.95rem; }
+
+.cert-view { margin-top: var(--space-7); }
+.cert-image img { width: 100%; height: auto; max-height: 80vh; object-fit: contain; background: #fff; }
+.cert-pdf { display: block; width: 100%; height: 80vh; border: 1px solid var(--color-border); background: #fff; }
+.cert-solo { margin-top: var(--space-7); max-width: 320px; display: flex; flex-direction: column; align-items: center; }
+.cert-solo .trophy { width: 120px; height: 120px; margin-bottom: -4px; filter: drop-shadow(0 0 18px rgb(250 204 21 / 0.3)); }
+
+.detail-pager {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+  padding: calc(var(--space-5) + 4px) 4px 4px;
+  border-top: 4px solid transparent;
+  border-image: var(--dash-rule) 4;
+}
+
+/* Full-screen image viewer */
+.lightbox {
+  width: min(1100px, 94vw);
+  max-height: 94vh;
+  padding: var(--space-4);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+.lightbox::backdrop { background: rgb(0 0 0 / 0.88); }
+.lightbox-bar, .lightbox-nav { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); padding: 4px; }
+.lightbox-count { color: var(--color-gold); }
+.lightbox-figure { margin: var(--space-4) 0; }
+.lightbox-img { width: 100%; max-height: 72vh; object-fit: contain; }
+.lightbox-caption { margin: var(--space-3) 0 0; color: var(--color-muted); text-align: center; }
+/* The game cursor can't draw above a modal, so show the normal cursor inside it */
+html.game-cursor .lightbox, html.game-cursor .lightbox * { cursor: auto !important; }
+html.game-cursor .lightbox button { cursor: pointer !important; }
 
 /* Contact */
 .contact-lead { margin: 0 0 var(--space-5); max-width: 36rem; color: var(--color-muted); font-size: 1.1rem; }

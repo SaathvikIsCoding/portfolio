@@ -37,6 +37,38 @@
 
   function slot(name) { return document.querySelector('[data-slot="' + name + '"]'); }
 
+  // URL-safe id from a title, e.g. "Game Art & 3D Environments" -> "game-art-3d-environments".
+  function slugify(text) {
+    return String(text || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'item';
+  }
+
+  // Give every item a unique id (stored id, else from its title). The admin uses the same
+  // rules when saving, so links to project/certificate pages stay stable.
+  function withIds(items, titleKey) {
+    var seen = {};
+    return items.map(function (item) {
+      var base = slugify(item.id || item[titleKey]);
+      var id = base;
+      for (var n = 2; seen[id]; n++) id = base + '-' + n;
+      seen[id] = true;
+      return Object.assign({}, item, { id: id });
+    });
+  }
+
+  function projectsOf(data) {
+    return withIds((data.projects || []).filter(function (pr) { return pr && pr.title; }), 'title');
+  }
+
+  function certsOf(data) {
+    return withIds((data.certifications || []).filter(function (c) { return c && c.name; }), 'name');
+  }
+
+  function loadContent() {
+    return fetch('content/content.json?v=' + Date.now(), { cache: 'no-store' })
+      .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); });
+  }
+
   function hideSection(id, hide) {
     var section = document.getElementById(id);
     if (section) section.hidden = hide;
@@ -98,8 +130,8 @@
       return el('li', { class: 'slot' }, [icon, el('span', { text: s })]);
     }));
 
-    // Projects
-    var projects = (data.projects || []).filter(function (pr) { return pr && pr.title; });
+    // Projects: each card opens its own quest page
+    var projects = projectsOf(data);
     hideSection('projects', projects.length === 0);
     slot('projects').replaceChildren.apply(slot('projects'), projects.map(function (pr, i) {
       var img = safeUrl(pr.image);
@@ -110,16 +142,17 @@
         el('span', { class: 'quest-tag pixel', 'aria-hidden': 'true', text: 'Quest ' + pad(i + 1) })
       ]);
       var tech = (pr.tech || []).filter(Boolean);
-      var links = [];
-      if (safeUrl(pr.live)) links.push(externalLink(safeUrl(pr.live), 'View project ▶'));
-      if (safeUrl(pr.repo)) links.push(externalLink(safeUrl(pr.repo), 'Source code ▶'));
+      // "Open quest" is stretched over the whole card (CSS), so clicking anywhere opens the page.
+      var links = [el('a', { class: 'quest-open', href: 'project.html?id=' + encodeURIComponent(pr.id), text: 'Open quest ▶' })];
+      if (safeUrl(pr.live)) links.push(externalLink(safeUrl(pr.live), 'Live ↗'));
+      if (safeUrl(pr.repo)) links.push(externalLink(safeUrl(pr.repo), 'Source ↗'));
       return el('article', { class: 'project-card panel reveal' }, [
         media,
         el('div', { class: 'project-body' }, [
           el('h3', { text: pr.title }),
           pr.description ? el('p', { text: pr.description }) : null,
           tech.length ? el('ul', { class: 'tags', 'aria-label': 'Technologies' }, tech.map(function (t) { return el('li', { text: t }); })) : null,
-          links.length ? el('div', { class: 'project-links' }, links) : null
+          el('div', { class: 'project-links' }, links)
         ])
       ]);
     }));
@@ -154,7 +187,7 @@
 
     // Education & certifications
     var edu = (data.education || []).filter(function (e) { return e && (e.degree || e.school); });
-    var certs = (data.certifications || []).filter(function (c) { return c && c.name; });
+    var certs = certsOf(data);
     hideSection('education', edu.length === 0 && certs.length === 0);
     // One heading per block: "Education" on top, "Certifications" as its own sub-heading.
     document.getElementById('education-title').textContent = edu.length ? 'Education' : 'Certifications';
@@ -164,12 +197,15 @@
     slot('certifications').replaceChildren.apply(slot('certifications'), certs.length ? [
       edu.length ? el('h3', { class: 'certs-title', text: 'Certifications' }) : null,
       // Trophy shelf: a pixel trophy standing on a shelf plank, name plate underneath.
+      // Each trophy links to its certificate page.
       el('ul', { class: 'cert-list' }, certs.map(function (c) {
         return el('li', { class: 'reveal' }, [
-          shelfTrophy(),
-          el('span', { class: 'plank', 'aria-hidden': 'true' }),
-          el('span', { class: 'cert-name', text: c.name }),
-          c.issuer ? el('span', { class: 'meta', text: c.issuer }) : null
+          el('a', { class: 'cert-link', href: 'certificate.html?id=' + encodeURIComponent(c.id) }, [
+            shelfTrophy(),
+            el('span', { class: 'plank', 'aria-hidden': 'true' }),
+            el('span', { class: 'cert-name', text: c.name }),
+            c.issuer ? el('span', { class: 'meta', text: c.issuer }) : null
+          ])
         ]);
       }))
     ] : []);
@@ -340,10 +376,18 @@
     items.forEach(function (n) { io.observe(n); });
   }
 
+  // Shared with the project/certificate pages (js/detail.js).
+  window.Portfolio = {
+    safeUrl: safeUrl, el: el, externalLink: externalLink, pixelButtons: pixelButtons, pad: pad,
+    shelfTrophy: shelfTrophy, projectsOf: projectsOf, certsOf: certsOf, loadContent: loadContent
+  };
+
   setupNav();
 
-  fetch('content/content.json?v=' + Date.now(), { cache: 'no-store' })
-    .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+  // Everything below renders the home page only.
+  if (!slot('about')) return;
+
+  loadContent()
     .then(function (data) { render(data); setupReveal(); document.dispatchEvent(new CustomEvent('portfolio:rendered')); })
     .catch(function (err) {
       console.error('Could not load content:', err);
