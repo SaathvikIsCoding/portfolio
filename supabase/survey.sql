@@ -12,6 +12,9 @@
 -- 1. Your admin passphrase ----------------------------------------------------------
 create schema if not exists private;
 create table if not exists private.survey_admin (key text primary key);
+-- Extra lock: the private schema isn't exposed by the API anyway, and the functions below
+-- read this table as its owner (owners bypass RLS), so enabling RLS changes nothing else.
+alter table private.survey_admin enable row level security;
 
 do $$
 declare
