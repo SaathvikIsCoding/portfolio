@@ -215,7 +215,7 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
 }
 .game-toggle { cursor: pointer; color: var(--color-success); }
 .game-toggle[aria-pressed="false"] { color: var(--color-danger); }
-.game-toggle:hover { text-decoration: underline; text-underline-offset: 4px; }
+.game-toggle:hover { filter: brightness(1.25); }
 .game-toggle[hidden] { display: none; }
 
 .nav-list {

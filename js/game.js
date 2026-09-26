@@ -182,7 +182,8 @@
   var score = 0;
   var best = Number(lget('best')) || 0;
   var kills = 0;
-  var gameOn = lget('game') !== 'off';
+  // Enemies are off until the visitor switches the game on; that choice is then remembered.
+  var gameOn = lget('game') === 'on';
   var START_DELAY = 3500; // ms after the mouse first appears
 
   function gameActive() {
