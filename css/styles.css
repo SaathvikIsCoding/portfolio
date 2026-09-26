@@ -759,17 +759,18 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
 .edu-item .meta { margin: var(--space-2) 0 0; color: var(--color-muted); font-size: 0.95rem; }
 
 .certs-title { font-size: 1.35rem; text-transform: uppercase; margin: var(--space-7) 0 var(--space-4); }
-/* Trophy shelf: cells sit edge to edge so the planks join into one shelf per row */
+/* Trophy shelf: items grow to share each row, so the planks always join into
+   one full-width shelf and the trophies are evenly spaced, even on a wrapped row. */
 .cert-list {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
-  column-gap: 0;
+  display: flex;
+  flex-wrap: wrap;
   row-gap: var(--space-7);
 }
 .cert-list li {
+  flex: 1 1 230px;
   display: flex;
   flex-direction: column;
   align-items: center;
