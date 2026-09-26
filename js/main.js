@@ -161,14 +161,13 @@
     }));
     slot('certifications').replaceChildren.apply(slot('certifications'), certs.length ? [
       edu.length ? el('h3', { class: 'certs-title', text: 'Certifications' }) : null,
+      // Trophy shelf: a pixel trophy standing on a shelf plank, name plate underneath.
       el('ul', { class: 'cert-list' }, certs.map(function (c) {
         return el('li', { class: 'reveal' }, [
-          trophy(),
-          el('span', { class: 'cert-text' }, [
-            el('span', { class: 'cert-kicker', 'aria-hidden': 'true', text: 'Achievement unlocked' }),
-            el('span', { text: c.name }),
-            c.issuer ? el('span', { class: 'meta', text: c.issuer }) : null
-          ])
+          shelfTrophy(),
+          el('span', { class: 'plank', 'aria-hidden': 'true' }),
+          el('span', { class: 'cert-name', text: c.name }),
+          c.issuer ? el('span', { class: 'meta', text: c.issuer }) : null
         ]);
       }))
     ] : []);
@@ -217,6 +216,29 @@
     if (!words.length) return '?';
     var text = words.length > 1 ? words[0][0] + words[1][0] : words[0].slice(0, 2);
     return text.toUpperCase();
+  }
+
+  // Larger two-tone pixel trophy for the certifications shelf.
+  function shelfTrophy() {
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 16 16');
+    svg.setAttribute('class', 'trophy');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('shape-rendering', 'crispEdges');
+    [
+      ['#facc15', 'M4 1h8v2h3v4h-1v1h-2v1h-1v2h-1v1h2v3H4v-3h2v-1H5V9H4V8H2V7H1V3h3zM2 4h2v2H2zm10 0h2v2h-2z', 'evenodd'],
+      ['#fde68a', 'M4 1h8v1H4z'],
+      ['#fffbe0', 'M5 3h1v4H5z'],
+      ['#b45309', 'M11 3h1v5h-1zM4 14h8v1H4zM7 10h1v2H7z']
+    ].forEach(function (part) {
+      var path = document.createElementNS(ns, 'path');
+      path.setAttribute('fill', part[0]);
+      path.setAttribute('d', part[1]);
+      if (part[2]) path.setAttribute('fill-rule', part[2]);
+      svg.appendChild(path);
+    });
+    return svg;
   }
 
   function trophy() {
