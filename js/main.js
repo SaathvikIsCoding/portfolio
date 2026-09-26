@@ -143,9 +143,14 @@
       ]);
       var tech = (pr.tech || []).filter(Boolean);
       // "Open quest" is stretched over the whole card (CSS), so clicking anywhere opens the page.
-      var links = [el('a', { class: 'quest-open', href: 'project.html?id=' + encodeURIComponent(pr.id), text: 'Open quest ▶' })];
-      if (safeUrl(pr.live)) links.push(externalLink(safeUrl(pr.live), 'Live ↗'));
-      if (safeUrl(pr.repo)) links.push(externalLink(safeUrl(pr.repo), 'Source ↗'));
+      // All three are small pixel buttons, like every other action on the site.
+      var links = [el('a', { class: 'quest-open pixel-btn pixel-btn-sm pixel-btn-primary', href: 'project.html?id=' + encodeURIComponent(pr.id), text: 'Open quest' })];
+      [[pr.live, 'Live'], [pr.repo, 'Source']].forEach(function (l) {
+        if (!safeUrl(l[0])) return;
+        var a = externalLink(safeUrl(l[0]), l[1]);
+        a.className = 'pixel-btn pixel-btn-sm';
+        links.push(a);
+      });
       return el('article', { class: 'project-card panel reveal' }, [
         media,
         el('div', { class: 'project-body' }, [
