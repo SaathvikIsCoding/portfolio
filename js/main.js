@@ -238,12 +238,14 @@
 
     // Level numbers follow the visible sections, so hidden ones don't leave gaps.
     var level = 0;
+    var visibleSections = Array.prototype.filter.call(document.querySelectorAll('main > section.section'), function (s) { return !s.hidden; });
     document.querySelectorAll('main > section.section').forEach(function (section) {
       var tag = section.querySelector('.level-tag');
       if (section.hidden) { delete section.dataset.level; return; }
       level += 1;
       section.dataset.level = level;
       if (tag) tag.textContent = 'Level ' + pad(level) + ' · ' + tag.getAttribute('data-level-name');
+      placeLevelBar(section, level, visibleSections.length);
     });
 
     renderStructuredData(data);
@@ -265,6 +267,28 @@
   }
 
   function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  // Progress blocks under a heading: "level 3 of 6" = two cleared (cyan), one current (gold), three empty.
+  function levelBar(current, total) {
+    var bar = el('span', { class: 'level-bar', 'aria-hidden': 'true' });
+    for (var i = 1; i <= total; i++) {
+      bar.appendChild(el('span', { class: i < current ? 'is-done' : i === current ? 'is-current' : null }));
+    }
+    return bar;
+  }
+
+  // Puts the bar inside the section's heading (or after its level tag if it has no heading).
+  function placeLevelBar(section, current, total) {
+    var old = section.querySelector('.level-bar');
+    if (old) old.remove();
+    var heading = section.querySelector('.section-title');
+    var bar = levelBar(current, total);
+    if (heading) heading.appendChild(bar);
+    else {
+      var tag = section.querySelector('.level-tag');
+      if (tag) tag.after(bar);
+    }
+  }
 
   // Show only the first row of a grid (as many items as fit the current width), with a
   // "See all (N)" pixel button to expand it and "Show less" to collapse it again.
@@ -398,7 +422,7 @@
   // Shared with the project/certificate pages (js/detail.js).
   window.Portfolio = {
     safeUrl: safeUrl, el: el, externalLink: externalLink, pixelButtons: pixelButtons, pad: pad,
-    certPaper: certPaper, isPdf: isPdf, projectsOf: projectsOf, certsOf: certsOf, loadContent: loadContent
+    certPaper: certPaper, isPdf: isPdf, placeLevelBar: placeLevelBar, projectsOf: projectsOf, certsOf: certsOf, loadContent: loadContent
   };
 
   setupNav();

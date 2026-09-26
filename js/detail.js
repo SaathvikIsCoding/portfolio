@@ -316,6 +316,9 @@
       bindProfile(data.profile || {});
       if (page === 'certificate') renderCertificate(data);
       else renderProject(data);
+      // Progress blocks under each part of the page, like the level bars on the home page.
+      var parts = root.querySelectorAll('.detail-section');
+      Array.prototype.forEach.call(parts, function (section, i) { P.placeLevelBar(section, i + 1, parts.length); });
       document.dispatchEvent(new CustomEvent('portfolio:rendered'));
     })
     .catch(function (err) {
