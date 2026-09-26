@@ -172,7 +172,8 @@
         issuer: str(c && c.issuer),
         date: str(c && c.date),
         url: str(c && c.url),
-        file: str(c && c.file)
+        file: str(c && c.file),
+        thumb: str(c && c.thumb)
       }))
     };
   }
@@ -327,7 +328,8 @@
         ...data.projects.map((p) => p.image),
         ...data.projects.flatMap((p) => p.gallery.map((g) => g.src)),
         ...data.projects.flatMap((p) => p.sections.flatMap((s) => (s.images || []).map((g) => g.src))),
-        ...data.certifications.map((c) => c.file)
+        ...data.certifications.map((c) => c.file),
+        ...data.certifications.map((c) => c.thumb)
       ].filter(Boolean));
       const tree = [];
       for (const [path, blob] of pending) {
@@ -849,7 +851,7 @@
         intro: 'Courses and certificates you have completed. Each one gets its own page on your site.',
         addText: 'Add certification',
         emptyText: 'No certifications yet.',
-        create: () => ({ id: '', name: '', issuer: '', date: '', url: '', file: '' }),
+        create: () => ({ id: '', name: '', issuer: '', date: '', url: '', file: '', thumb: '' }),
         summary: (c) => c.name || 'New certification',
         body: (c, refresh) => [
           grid2(
@@ -862,7 +864,11 @@
           ),
           imagePicker('Certificate', c, 'file', {
             shape: 'wide', maxSize: 2400, allowPdf: true,
-            hint: 'Upload the certificate as an image (JPG/PNG) or a PDF up to 10 MB. Visitors see it on the certificate page.'
+            hint: 'Upload the certificate as an image (JPG/PNG) or a PDF up to 10 MB. An image also appears as the certificate’s picture on your home page.'
+          }),
+          imagePicker('Preview image (for PDFs)', c, 'thumb', {
+            shape: 'wide', maxSize: 1200,
+            hint: 'Optional. If the certificate is a PDF, upload a screenshot of it here so your home page can show a picture of it. Not needed for image certificates.'
           })
         ]
       });

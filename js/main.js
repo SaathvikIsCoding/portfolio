@@ -157,6 +157,8 @@
       ]);
     }));
 
+    if (projects.length) firstRowOnly(slot('projects'), 'projects');
+
     // Hero actions: 8-bit pixel buttons
     var actions = [];
     if (projects.length) actions.push(['#projects', 'View my work']);
@@ -196,19 +198,19 @@
     }));
     slot('certifications').replaceChildren.apply(slot('certifications'), certs.length ? [
       edu.length ? el('h3', { class: 'certs-title', text: 'Certifications' }) : null,
-      // Trophy shelf: a pixel trophy standing on a shelf plank, name plate underneath.
-      // Each trophy links to its certificate page.
-      el('ul', { class: 'cert-list' }, certs.map(function (c) {
+      // Certificate cards: thumbnail of the certificate + name; each links to its page.
+      el('ul', { class: 'cert-grid' }, certs.map(function (c) {
+        var meta = [c.issuer, c.date].filter(Boolean).join(', ');
         return el('li', { class: 'reveal' }, [
-          el('a', { class: 'cert-link', href: 'certificate.html?id=' + encodeURIComponent(c.id) }, [
-            shelfTrophy(),
-            el('span', { class: 'plank', 'aria-hidden': 'true' }),
-            el('span', { class: 'cert-name', text: c.name }),
-            c.issuer ? el('span', { class: 'meta', text: c.issuer }) : null
+          el('a', { class: 'cert-card', href: 'certificate.html?id=' + encodeURIComponent(c.id) }, [
+            el('div', { class: 'cert-thumb' }, [certPreview(c)]),
+            el('span', { class: 'cert-card-name', text: c.name }),
+            meta ? el('span', { class: 'meta', text: meta }) : null
           ])
         ]);
       }))
     ] : []);
+    if (certs.length) firstRowOnly(document.querySelector('.cert-grid'), 'certifications');
 
     // Player stats (all derived from real content)
     var stats = [];
@@ -255,49 +257,57 @@
 
   function pad(n) { return (n < 10 ? '0' : '') + n; }
 
+  // Show only the first row of a grid (as many items as fit the current width), with a
+  // "See all (N)" pixel button to expand it and "Show less" to collapse it again.
+  function firstRowOnly(grid, noun) {
+    var old = grid.nextElementSibling;
+    if (old && old.classList.contains('see-all')) old.remove();
+    var expanded = false;
+    var button = el('button', { type: 'button', class: 'pixel-btn pixel-btn-sm', 'aria-expanded': 'false' });
+    var wrap = el('div', { class: 'pixel-btns see-all' }, [button]);
+    grid.after(wrap);
+
+    function update() {
+      var items = Array.prototype.slice.call(grid.children);
+      var perRow = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+      items.forEach(function (item, i) { item.hidden = !expanded && i >= perRow; });
+      wrap.hidden = items.length <= perRow;
+      button.textContent = expanded ? 'Show less' : 'See all ' + noun + ' (' + items.length + ')';
+      button.setAttribute('aria-expanded', String(expanded));
+    }
+    button.addEventListener('click', function () {
+      expanded = !expanded;
+      update();
+      if (!expanded) grid.scrollIntoView({ block: 'nearest' });
+    });
+    window.addEventListener('resize', update);
+    update();
+  }
+
+  // What a certificate looks like in lists: its preview image, the certificate image itself,
+  // or (for PDFs without a preview, or nothing uploaded yet) a paper-certificate stand-in.
+  function isPdf(path) { return /\.pdf($|[?#])/i.test(path || ''); }
+
+  function certPreview(c) {
+    var src = safeUrl(c.thumb) || (c.file && !isPdf(c.file) ? safeUrl(c.file) : '');
+    if (src) return el('img', { src: src, alt: c.name + ' certificate', loading: 'lazy' });
+    return certPaper(c);
+  }
+
+  function certPaper(c) {
+    return el('div', { class: 'cert-paper', 'aria-hidden': 'true' }, [
+      el('span', { class: 'cert-paper-label pixel', text: 'Certificate' }),
+      el('span', { class: 'cert-paper-name', text: c.name }),
+      c.issuer ? el('span', { class: 'cert-paper-issuer', text: c.issuer }) : null,
+      isPdf(c.file) ? el('span', { class: 'cert-paper-badge pixel', text: 'PDF' }) : null
+    ]);
+  }
+
   function skillIcon(name) {
     var words = name.replace(/[^\w\s.+#]/g, ' ').trim().split(/\s+/).filter(Boolean);
     if (!words.length) return '?';
     var text = words.length > 1 ? words[0][0] + words[1][0] : words[0].slice(0, 2);
     return text.toUpperCase();
-  }
-
-  // Larger two-tone pixel trophy for the certifications shelf.
-  function shelfTrophy() {
-    var ns = 'http://www.w3.org/2000/svg';
-    var svg = document.createElementNS(ns, 'svg');
-    svg.setAttribute('viewBox', '0 0 16 16');
-    svg.setAttribute('class', 'trophy');
-    svg.setAttribute('aria-hidden', 'true');
-    svg.setAttribute('shape-rendering', 'crispEdges');
-    [
-      ['#facc15', 'M4 1h8v2h3v4h-1v1h-2v1h-1v2h-1v1h2v3H4v-3h2v-1H5V9H4V8H2V7H1V3h3zM2 4h2v2H2zm10 0h2v2h-2z', 'evenodd'],
-      ['#fde68a', 'M4 1h8v1H4z'],
-      ['#fffbe0', 'M5 3h1v4H5z'],
-      ['#b45309', 'M11 3h1v5h-1zM4 14h8v1H4zM7 10h1v2H7z']
-    ].forEach(function (part) {
-      var path = document.createElementNS(ns, 'path');
-      path.setAttribute('fill', part[0]);
-      path.setAttribute('d', part[1]);
-      if (part[2]) path.setAttribute('fill-rule', part[2]);
-      svg.appendChild(path);
-    });
-    return svg;
-  }
-
-  function trophy() {
-    var ns = 'http://www.w3.org/2000/svg';
-    var svg = document.createElementNS(ns, 'svg');
-    svg.setAttribute('viewBox', '0 0 16 16');
-    svg.setAttribute('class', 'trophy');
-    svg.setAttribute('aria-hidden', 'true');
-    svg.setAttribute('shape-rendering', 'crispEdges');
-    var path = document.createElementNS(ns, 'path');
-    path.setAttribute('fill', 'currentColor');
-    path.setAttribute('fill-rule', 'evenodd');
-    path.setAttribute('d', 'M4 1h8v2h3v4h-1v1h-2v1h-1v2h-1v1h2v3H4v-3h2v-1H5V9H4V8H2V7H1V3h3zM2 4h2v2H2zm10 0h2v2h-2z');
-    svg.appendChild(path);
-    return svg;
   }
 
   // "2+" years from the earliest start date found in experience periods (e.g. "Aug 2024 – Present").
@@ -379,7 +389,7 @@
   // Shared with the project/certificate pages (js/detail.js).
   window.Portfolio = {
     safeUrl: safeUrl, el: el, externalLink: externalLink, pixelButtons: pixelButtons, pad: pad,
-    shelfTrophy: shelfTrophy, projectsOf: projectsOf, certsOf: certsOf, loadContent: loadContent
+    certPaper: certPaper, isPdf: isPdf, projectsOf: projectsOf, certsOf: certsOf, loadContent: loadContent
   };
 
   setupNav();

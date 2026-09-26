@@ -284,18 +284,20 @@
     if (safeUrl(c.url)) links.push([safeUrl(c.url), 'Verify credential']);
     if (isPdf) links.push([file, 'Open PDF']);
 
+    // PDF → embedded viewer; image certificate (or its preview image) → large image;
+    // nothing uploaded yet → the paper-certificate stand-in.
+    var imageSrc = file && !isPdf ? file : safeUrl(c.thumb);
     var viewer;
     if (file && isPdf) {
       viewer = el('div', { class: 'cert-view' }, [el('iframe', { class: 'cert-pdf', src: file, title: c.name + ' (PDF)' })]);
-    } else if (file) {
+    } else if (imageSrc) {
       var image = el('button', { type: 'button', class: 'gallery-item cert-image', 'aria-label': 'View ' + c.name + ' full size' }, [
-        el('img', { src: file, alt: c.name + ' certificate' })
+        el('img', { src: imageSrc, alt: c.name + ' certificate' })
       ]);
-      image.addEventListener('click', function () { openLightbox([{ src: file, alt: c.name + ' certificate', caption: c.name }], 0); });
+      image.addEventListener('click', function () { openLightbox([{ src: imageSrc, alt: c.name + ' certificate', caption: c.name }], 0); });
       viewer = el('div', { class: 'cert-view' }, [image]);
     } else {
-      // No file uploaded yet: show the trophy from the shelf instead.
-      viewer = el('div', { class: 'cert-solo', 'aria-hidden': 'true' }, [P.shelfTrophy(), el('span', { class: 'plank' })]);
+      viewer = el('div', { class: 'cert-solo' }, [P.certPaper(c)]);
     }
 
     root.replaceChildren.apply(root, [
