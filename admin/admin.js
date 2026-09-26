@@ -7,7 +7,7 @@
   const UPLOAD_DIR = 'assets/uploads';
   const API = 'https://api.github.com';
   const STORE_KEY = 'portfolio-admin';
-  const PROFILE_KEYS = ['name', 'role', 'tagline', 'about', 'photo', 'location', 'email', 'resume'];
+  const PROFILE_KEYS = ['name', 'role', 'tagline', 'about', 'summary', 'photo', 'location', 'email', 'resume'];
 
   const $ = (sel) => document.querySelector(sel);
 
@@ -132,8 +132,18 @@
       experience: arr(d.experience).map((x) => ({
         role: str(x && x.role),
         org: str(x && x.org),
+        location: str(x && x.location),
         period: str(x && x.period),
         description: str(x && x.description)
+      })),
+      education: arr(d.education).map((e) => ({
+        degree: str(e && e.degree),
+        school: str(e && e.school),
+        period: str(e && e.period)
+      })),
+      certifications: arr(d.certifications).map((c) => ({
+        name: str(c && c.name),
+        issuer: str(c && c.issuer)
       }))
     };
   }
@@ -145,7 +155,9 @@
       socials: c.socials.map(trim).filter((s) => s.label && s.url),
       skills: c.skills.map((s) => s.trim()).filter(Boolean),
       projects: c.projects.map(trim).filter((p) => p.title),
-      experience: c.experience.map(trim).filter((x) => x.role || x.org)
+      experience: c.experience.map(trim).filter((x) => x.role || x.org),
+      education: c.education.map(trim).filter((e) => e.degree || e.school),
+      certifications: c.certifications.map(trim).filter((x) => x.name)
     };
   }
 
@@ -430,7 +442,11 @@
             field('Role / title', p, 'role', { placeholder: 'e.g. Full-stack developer' })
           ),
           field('Tagline', p, 'tagline', { hint: 'One sentence shown under your name.' }),
-          field('About me', p, 'about', { multiline: true, rows: 8, hint: 'Leave an empty line between paragraphs.' })
+          field('About me', p, 'about', { multiline: true, rows: 8, hint: 'Leave an empty line between paragraphs.' }),
+          field('Resume summary', p, 'summary', {
+            multiline: true, rows: 5,
+            hint: 'The Summary on your resume page. Keep it to 3–4 lines, avoid "I"/"my", and use keywords from job posts. If empty, "About me" is used.'
+          })
         ),
         card(
           h('h3', { text: 'Contact details' }),
@@ -438,7 +454,7 @@
             field('Email', p, 'email', { type: 'email', hint: 'Shown publicly. Leave empty to hide.' }),
             field('Location', p, 'location', { placeholder: 'e.g. City, Country' })
           ),
-          field('Resume link', p, 'resume', { type: 'url', placeholder: 'https://…', hint: 'Link to your resume PDF (for example a Google Drive share link). Leave empty to hide.' })
+          field('Resume link', p, 'resume', { type: 'url', placeholder: 'https://…', hint: 'Use "resume.html" for the ATS-friendly resume built automatically from this admin, or paste a link to your own PDF. Leave empty to hide the Resume button.' })
         )
       ];
     },
@@ -522,18 +538,59 @@
     experience() {
       return repeatable(content.experience, {
         title: 'Experience',
-        intro: 'Jobs, internships, freelance work or education. Hidden on your site while empty.',
+        intro: 'Jobs, internships and freelance work, newest first. Hidden on your site while empty.',
         addText: 'Add entry',
         emptyText: 'No experience yet. The Experience section is hidden on your site until you add some.',
-        create: () => ({ role: '', org: '', period: '', description: '' }),
+        create: () => ({ role: '', org: '', location: '', period: '', description: '' }),
         summary: (x) => [x.role, x.org].filter(Boolean).join(' at ') || 'New entry',
         body: (x, refresh) => [
           grid2(
-            field('Role / title', x, 'role', { placeholder: 'e.g. Frontend Intern', onChange: refresh }),
-            field('Company / school', x, 'org', { onChange: refresh })
+            field('Role / title', x, 'role', { placeholder: 'e.g. Junior Designer', onChange: refresh }),
+            field('Company', x, 'org', { onChange: refresh })
           ),
-          field('Dates', x, 'period', { placeholder: 'e.g. Jun 2025 – Present' }),
-          field('Description', x, 'description', { multiline: true, rows: 4 })
+          grid2(
+            field('Dates', x, 'period', { placeholder: 'e.g. Jun 2025 – Present' }),
+            field('Location', x, 'location', { placeholder: 'e.g. Pune, India' })
+          ),
+          field('What you did', x, 'description', {
+            multiline: true, rows: 7,
+            hint: 'One achievement per line; each line becomes a bullet point. Start with an action verb and include numbers where you can (e.g. "Managed ₹1 crore in ad spend…").'
+          })
+        ]
+      });
+    },
+
+    education() {
+      return repeatable(content.education, {
+        title: 'Education',
+        intro: 'Degrees and courses of study. Shown on your site and resume.',
+        addText: 'Add education',
+        emptyText: 'No education yet.',
+        create: () => ({ degree: '', school: '', period: '' }),
+        summary: (e) => e.degree || e.school || 'New entry',
+        body: (e, refresh) => [
+          field('Degree', e, 'degree', { placeholder: 'e.g. Master of Design (M.Des), Digital Game Design', onChange: refresh }),
+          grid2(
+            field('School / university', e, 'school', { onChange: refresh }),
+            field('Dates', e, 'period', { placeholder: 'e.g. 2025 – Present' })
+          )
+        ]
+      });
+    },
+
+    certifications() {
+      return repeatable(content.certifications, {
+        title: 'Certifications',
+        intro: 'Courses and certificates you have completed.',
+        addText: 'Add certification',
+        emptyText: 'No certifications yet.',
+        create: () => ({ name: '', issuer: '' }),
+        summary: (c) => c.name || 'New certification',
+        body: (c, refresh) => [
+          grid2(
+            field('Certificate name', c, 'name', { onChange: refresh }),
+            field('Issued by', c, 'issuer', { placeholder: 'e.g. Coursera, Udemy, Epic Games' })
+          )
         ]
       });
     }

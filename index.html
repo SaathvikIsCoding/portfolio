@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Portfolio</title>
-  <meta name="description" content="Developer portfolio">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Portfolio">
-  <meta property="og:description" content="Developer portfolio">
+  <title>Daravath Saathvik | Game Designer</title>
+  <meta name="description" content="Game designer pursuing a Master of Design in Digital Game Design at NID, with experience in digital marketing, paid media and visual design.">
+  <meta property="og:type" content="profile">
+  <meta property="og:title" content="Daravath Saathvik | Game Designer">
+  <meta property="og:description" content="Game designer pursuing a Master of Design in Digital Game Design at NID, with experience in digital marketing, paid media and visual design.">
   <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -36,6 +36,7 @@
           <li data-section="skills"><a href="#skills">Skills</a></li>
           <li data-section="projects"><a href="#projects">Projects</a></li>
           <li data-section="experience"><a href="#experience">Experience</a></li>
+          <li data-section="education"><a href="#education">Education</a></li>
           <li><a href="#contact">Contact</a></li>
         </ul>
       </nav>
@@ -54,7 +55,7 @@
           <h1 class="hero-name" data-bind="name">&nbsp;</h1>
           <p class="hero-role" data-bind="role"></p>
           <p class="hero-tagline" data-bind="tagline"></p>
-          <div class="hero-actions">
+          <div class="hero-actions" data-slot="actions">
             <a class="btn btn-primary" href="#projects">View my work</a>
             <a class="btn btn-ghost" href="#contact">Contact me</a>
           </div>
@@ -95,7 +96,15 @@
       </div>
     </section>
 
-    <section class="section" id="contact" aria-labelledby="contact-title">
+    <section class="section" id="education" aria-labelledby="education-title">
+      <div class="container">
+        <h2 class="section-title" id="education-title">Education</h2>
+        <ol class="edu-list" data-slot="education"></ol>
+        <div class="certs" data-slot="certifications"></div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="contact" aria-labelledby="contact-title">
       <div class="container">
         <div class="contact-card">
           <h2 class="section-title" id="contact-title">Let's work together</h2>

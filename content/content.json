@@ -1,51 +1,91 @@
 {
   "profile": {
     "name": "Daravath Saathvik",
-    "role": "Web Developer",
-    "tagline": "I build fast, responsive websites and web apps that look good on every screen.",
-    "about": "[Write a few lines about yourself: what you do, what you enjoy building, and what you're learning right now.]\n\n[Add a second paragraph if you like: your background, education, or what kind of work you're looking for.]",
+    "role": "Game Designer",
+    "tagline": "Designing worlds, stories and play. Pursuing a Master of Design in Digital Game Design at NID, with hands-on experience in digital marketing and visual design.",
+    "about": "I'm a game designer with a background in Game and Interactive Media Design (BA Hons) from JNAFAU, currently pursuing a Master of Design in Digital Game Design at the National Institute of Design (NID).\n\nAt MaxLink Group of Companies I work in digital marketing and design: I manage paid media across Meta Ads and Google Ads and create static and video ad creatives. Alongside that, my academic and independent projects span game art, 3D environments and interactive storytelling.\n\nI enjoy blending creativity with design strategy to craft engaging player experiences.",
+    "summary": "Game designer pursuing a Master of Design (M.Des) in Digital Game Design at the National Institute of Design (NID), with a BA (Hons) in Game and Interactive Media Design from JNAFAU. Experienced in digital marketing and visual design at MaxLink Group of Companies: managed nearly ₹1 crore in Meta Ads and Google Ads spend at 5× ROAS and produced static and video ad creatives in Adobe Photoshop, Illustrator and Premiere Pro. Academic and independent work spans game art, 3D environments (Unreal Engine 5, Autodesk Maya) and interactive storytelling.",
     "photo": "assets/uploads/1790403971779-untitled-77.webp",
-    "location": "",
-    "email": "",
-    "resume": ""
+    "location": "Bengaluru, Karnataka, India",
+    "email": "daravathsaathvik@gmail.com",
+    "resume": "resume.html"
   },
   "socials": [
-    {
-      "label": "GitHub",
-      "url": "https://github.com/SaathvikIsCoding"
-    }
+    { "label": "LinkedIn", "url": "https://www.linkedin.com/in/saathvik-daravath" },
+    { "label": "ArtStation", "url": "https://saathvik.artstation.com/" },
+    { "label": "GitHub", "url": "https://github.com/SaathvikIsCoding" }
   ],
   "skills": [
-    "HTML",
-    "CSS",
-    "JavaScript",
-    "Responsive Design",
-    "Git & GitHub"
+    "Game Design",
+    "Interactive Storytelling",
+    "3D Environment Design",
+    "Game Art",
+    "Unreal Engine 5",
+    "Autodesk Maya",
+    "Rigging",
+    "p5.js",
+    "Adobe Photoshop",
+    "Adobe Illustrator",
+    "Adobe Premiere Pro",
+    "Graphic Design",
+    "Video Editing",
+    "Google Ads",
+    "Meta Ads",
+    "Performance Marketing",
+    "Marketing Campaign Management",
+    "Creative Testing",
+    "Audience Targeting",
+    "E-Commerce"
   ],
   "projects": [
     {
+      "title": "Game Art & 3D Environments",
+      "description": "Academic and independent work in game art, 3D environments and interactive storytelling, collected on ArtStation.",
+      "tech": ["Unreal Engine 5", "Autodesk Maya", "Adobe Photoshop"],
+      "image": "",
+      "live": "https://saathvik.artstation.com/",
+      "repo": ""
+    },
+    {
       "title": "Portfolio Website",
-      "description": "This site: a responsive portfolio with a built-in admin panel for editing content, deployed on GitHub Pages.",
-      "tech": [
-        "HTML",
-        "CSS",
-        "JavaScript",
-        "GitHub API"
-      ],
+      "description": "Responsive personal portfolio with a built-in admin panel for editing content and an auto-generated ATS-friendly resume, deployed on GitHub Pages.",
+      "tech": ["HTML", "CSS", "JavaScript", "GitHub API"],
       "image": "",
       "live": "",
       "repo": "https://github.com/SaathvikIsCoding/portfolio"
-    },
-    {
-      "title": "[Project name]",
-      "description": "[One or two lines on what it does and what you built.]",
-      "tech": [
-        "[Tech]"
-      ],
-      "image": "",
-      "live": "",
-      "repo": ""
     }
   ],
-  "experience": []
+  "experience": [
+    {
+      "role": "Digital Marketing Specialist",
+      "org": "MaxLink Group of Companies",
+      "location": "Pune, India",
+      "period": "Dec 2024 – Present",
+      "description": "Managed nearly ₹1 crore in paid media across Meta Ads and Google Ads, achieving 5× ROAS through data-led audience targeting, creative testing and budget optimisation.\nLed full-funnel campaign strategy for CapShap, Yosha and Hudhawk, turning product launches and brand goals into conversion-focused digital campaigns.\nCreated performance-led static and video ad creatives in Adobe Photoshop, Illustrator and Premiere Pro, tailored for Meta and Google placements.\nAnalysed campaign performance to refine targeting, messaging and creative direction, keeping acquisition aligned with profitable growth goals."
+    },
+    {
+      "role": "Junior Designer",
+      "org": "MaxLink Group of Companies",
+      "location": "Pune, India",
+      "period": "Aug 2024 – Dec 2024",
+      "description": "Designed high-impact static and video creatives for CapShap, Yosha and Hudhawk, maintaining a consistent visual identity across campaigns.\nProduced paid-ad, social-media and promotional assets in Adobe Photoshop, Illustrator and Premiere Pro, adapting each creative to its channel and audience.\nCollaborated with marketing teams to turn campaign briefs into clear, conversion-focused visuals for product launches and brand promotions.\nIterated on creative concepts using campaign feedback, improving the relevance and effectiveness of visual communication across digital touchpoints."
+    }
+  ],
+  "education": [
+    {
+      "degree": "Master of Design (M.Des), Digital Game Design",
+      "school": "National Institute of Design (NID)",
+      "period": "2025 – Present"
+    },
+    {
+      "degree": "Bachelor of Arts (BA Hons), Game and Interactive Media Design",
+      "school": "Jawaharlal Nehru Architecture and Fine Arts University (JNAFAU)",
+      "period": "Sep 2021 – Jun 2025"
+    }
+  ],
+  "certifications": [
+    { "name": "Introduction to Rigging in Maya", "issuer": "" },
+    { "name": "Unreal Engine 5: Creating Cinematic Car Scenes", "issuer": "" },
+    { "name": "Introduction to Creative Coding with p5.js", "issuer": "" }
+  ]
 }

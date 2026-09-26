@@ -114,17 +114,49 @@
       ]);
     }));
 
+    // Hero actions
+    var actions = [];
+    if (projects.length) actions.push(el('a', { class: 'btn btn-primary', href: '#projects', text: 'View my work' }));
+    if (safeUrl(p.resume)) {
+      var resumeBtn = externalLink(safeUrl(p.resume), 'Resume');
+      resumeBtn.className = actions.length ? 'btn btn-ghost' : 'btn btn-primary';
+      actions.push(resumeBtn);
+    }
+    actions.push(el('a', { class: 'btn btn-ghost', href: '#contact', text: 'Contact me' }));
+    slot('actions').replaceChildren.apply(slot('actions'), actions);
+
     // Experience
     var exp = (data.experience || []).filter(function (x) { return x && (x.role || x.org); });
     hideSection('experience', exp.length === 0);
     slot('experience').replaceChildren.apply(slot('experience'), exp.map(function (x) {
-      var meta = [x.org, x.period].filter(Boolean).join(' · ');
+      var meta = [x.org, x.period, x.location].filter(Boolean).join(' · ');
       return el('li', { class: 'reveal' }, [
         el('h3', { text: x.role || x.org }),
         meta ? el('p', { class: 'meta', text: meta }) : null,
-        x.description ? el('p', { text: x.description }) : null
+        descriptionNode(x.description)
       ]);
     }));
+
+    // Education & certifications
+    var edu = (data.education || []).filter(function (e) { return e && (e.degree || e.school); });
+    var certs = (data.certifications || []).filter(function (c) { return c && c.name; });
+    hideSection('education', edu.length === 0 && certs.length === 0);
+    document.getElementById('education-title').textContent =
+      edu.length && certs.length ? 'Education & Certifications' : edu.length ? 'Education' : 'Certifications';
+    slot('education').replaceChildren.apply(slot('education'), edu.map(function (e) {
+      return el('li', { class: 'edu-item reveal' }, [
+        el('h3', { text: e.degree || e.school }),
+        el('p', { class: 'meta', text: [e.degree ? e.school : '', e.period].filter(Boolean).join(' · ') })
+      ]);
+    }));
+    slot('certifications').replaceChildren.apply(slot('certifications'), certs.length ? [
+      edu.length ? el('h3', { class: 'certs-title', text: 'Certifications' }) : null,
+      el('ul', { class: 'cert-list' }, certs.map(function (c) {
+        return el('li', null, [el('span', { text: c.name }), c.issuer ? el('span', { class: 'meta', text: c.issuer }) : null]);
+      }))
+    ] : []);
+
+    renderStructuredData(data);
 
     // Contact
     var contact = [];
@@ -135,6 +167,40 @@
       contact.push(a);
     });
     slot('contact').replaceChildren.apply(slot('contact'), contact);
+  }
+
+  // Multi-line descriptions become bullet lists; single lines stay a paragraph.
+  function descriptionNode(text) {
+    var lines = String(text || '').split('\n').map(function (l) { return l.replace(/^\s*[•\-*]\s*/, '').trim(); }).filter(Boolean);
+    if (!lines.length) return null;
+    if (lines.length === 1) return el('p', { text: lines[0] });
+    return el('ul', { class: 'bullets' }, lines.map(function (l) { return el('li', { text: l }); }));
+  }
+
+  // schema.org Person data, read by search engines and recruiting tools.
+  function renderStructuredData(data) {
+    var p = data.profile || {};
+    var socials = (data.socials || []).map(function (s) { return safeUrl(s && s.url); }).filter(function (u) { return /^https?:/i.test(u); });
+    var current = (data.experience || []).find(function (x) { return x && /present/i.test(x.period || ''); });
+    var person = {
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: p.name || undefined,
+      jobTitle: p.role || undefined,
+      description: p.tagline || undefined,
+      email: p.email ? 'mailto:' + p.email : undefined,
+      url: location.href.split('#')[0],
+      image: safeUrl(p.photo) ? new URL(safeUrl(p.photo), location.href).href : undefined,
+      address: p.location ? { '@type': 'PostalAddress', addressLocality: p.location } : undefined,
+      sameAs: socials.length ? socials : undefined,
+      knowsAbout: (data.skills || []).length ? data.skills : undefined,
+      worksFor: current && current.org ? { '@type': 'Organization', name: current.org } : undefined,
+      alumniOf: (data.education || []).filter(function (e) { return e && e.school; })
+        .map(function (e) { return { '@type': 'CollegeOrUniversity', name: e.school }; })
+    };
+    if (!person.alumniOf.length) delete person.alumniOf;
+    var script = document.getElementById('person-jsonld') || document.head.appendChild(el('script', { type: 'application/ld+json', id: 'person-jsonld' }));
+    script.textContent = JSON.stringify(person);
   }
 
   function setupNav() {
@@ -148,7 +214,7 @@
     });
     list.addEventListener('click', function (e) { if (e.target.closest('a')) close(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && list.classList.contains('is-open')) { close(); toggle.focus(); } });
-    window.matchMedia('(min-width: 768px)').addEventListener('change', close);
+    window.matchMedia('(min-width: 900px)').addEventListener('change', close);
   }
 
   function setupTheme() {
