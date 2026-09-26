@@ -178,9 +178,9 @@
     }
   ],
   "survey": {
-    "enabled": false,
+    "enabled": true,
     "url": "",
-    "key": "",
+    "key": "saathvikiscoding",
     "greeting": "Hey, I'm Saathvik!"
   }
 }
