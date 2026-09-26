@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://api.github.com; img-src 'self' data: blob: https:; script-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://api.github.com https://*.supabase.co; img-src 'self' data: blob: https:; script-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>Portfolio Admin</title>
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="admin.css">
@@ -78,6 +78,7 @@
         <button role="tab" data-tab="experience" aria-selected="false">Experience</button>
         <button role="tab" data-tab="education" aria-selected="false">Education</button>
         <button role="tab" data-tab="certifications" aria-selected="false">Certifications</button>
+        <button role="tab" data-tab="survey" aria-selected="false">Survey</button>
       </nav>
       <main class="panel" id="panel" role="tabpanel"></main>
     </div>

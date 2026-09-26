@@ -12,6 +12,7 @@
   --color-accent-2: #f472b6;
   --color-gold: #facc15;
   --color-success: #4ade80;
+  --color-danger: #f87171;
   --color-on-accent: #041018;
   --color-star: #ffffff;
   --glow: 0 0 0 1px rgb(34 211 238 / 0.35), 0 0 24px rgb(34 211 238 / 0.25);
@@ -194,13 +195,14 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
 .brand:hover { color: var(--color-accent); }
 
 .site-nav { order: 3; }
-/* Header HUD: the level readout, the game switch and the menu button share one box style */
+/* Header HUD: the level readout, the game switch and the menu button — plain pixel text,
+   no boxes. The game switch reads green when on, red when off. */
 .hud-level, .game-toggle {
   order: 1;
   display: inline-flex;
   align-items: center;
   height: 44px;
-  padding: 0 12px;
+  padding: 0 8px;
   font-family: var(--font-pixel);
   font-size: var(--fs-pixel);
   letter-spacing: var(--ls-pixel);
@@ -209,11 +211,11 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
   white-space: nowrap;
   color: var(--color-gold);
   background: transparent;
-  border: 1px solid var(--color-border);
+  border: 0;
 }
-.game-toggle { cursor: pointer; }
-.game-toggle[aria-pressed="false"] { color: var(--color-muted); }
-.game-toggle:hover, .nav-toggle:hover { border-color: var(--color-gold); }
+.game-toggle { cursor: pointer; color: var(--color-success); }
+.game-toggle[aria-pressed="false"] { color: var(--color-danger); }
+.game-toggle:hover { text-decoration: underline; text-underline-offset: 4px; }
 .game-toggle[hidden] { display: none; }
 
 .nav-list {
@@ -241,11 +243,12 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
   place-items: center;
   width: 44px;
   height: 44px;
-  border: 1px solid var(--color-border);
+  border: 0;
   background: transparent;
   color: var(--color-gold);
   cursor: pointer;
 }
+.nav-toggle:hover { color: var(--color-accent); }
 .nav-toggle { display: none; }
 .nav-toggle-bar, .nav-toggle-bar::before, .nav-toggle-bar::after {
   display: block;
@@ -959,9 +962,44 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
 .lightbox-figure { margin: var(--space-4) 0; }
 .lightbox-img { width: 100%; max-height: 72vh; object-fit: contain; }
 .lightbox-caption { margin: var(--space-3) 0 0; color: var(--color-muted); text-align: center; }
-/* The game cursor can't draw above a modal, so show the normal cursor inside it */
-html.game-cursor .lightbox, html.game-cursor .lightbox * { cursor: auto !important; }
-html.game-cursor .lightbox button { cursor: pointer !important; }
+/* The game cursor can't draw above a modal, so show the normal cursor inside any dialog */
+html.game-cursor dialog, html.game-cursor dialog * { cursor: auto !important; }
+html.game-cursor dialog button, html.game-cursor dialog select { cursor: pointer !important; }
+html.game-cursor dialog input[type="text"] { cursor: text !important; }
+
+/* Visitor survey pop-up (js/survey.js): framed like the P1 character-select box */
+.survey {
+  width: min(460px, 92vw);
+  max-height: 92vh;
+  padding: var(--space-6) var(--space-5) var(--space-5);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 2px solid var(--color-accent);
+  box-shadow: 8px 8px 0 var(--color-accent-2);
+}
+.survey::backdrop { background: rgb(0 0 0 / 0.75); }
+.survey .level-tag { margin-bottom: var(--space-2); }
+.survey-title { font-size: var(--fs-title); text-transform: uppercase; }
+.survey-intro { margin: var(--space-3) 0 var(--space-5); color: var(--color-muted); font-size: var(--fs-meta); }
+.survey-form { display: grid; gap: var(--space-4); }
+.survey-field { display: grid; gap: var(--space-2); }
+.survey-label { font-family: var(--font-pixel); font-size: var(--fs-pixel); letter-spacing: var(--ls-pixel); text-transform: uppercase; color: var(--color-accent-2); }
+.survey input, .survey select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+}
+.survey input:focus, .survey select:focus { outline: none; border-color: var(--color-accent); }
+.survey-status { margin: 0; min-height: 1.4em; color: var(--color-gold); font-size: var(--fs-meta); }
+.survey-status:empty { min-height: 0; }
+.survey-actions { margin-top: var(--space-2); }
+.survey-thanks { margin: var(--space-4) 0; font-family: var(--font-display); font-size: var(--fs-title-sm); color: var(--color-success); text-transform: uppercase; }
+.survey-note { margin: var(--space-4) 0 0; color: var(--color-muted); font-size: var(--fs-meta); }
 
 /* Contact */
 .contact-lead { margin: 0 0 var(--space-5); max-width: 36rem; color: var(--color-muted); font-size: var(--fs-lead); }

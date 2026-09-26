@@ -176,5 +176,11 @@
       "file": "assets/uploads/1790416268148-4-unreal-engine-5-creating-cinematic-car-s.pdf",
       "thumb": "assets/uploads/1790416271498-5-unreal-engine-5-creating-cinematic-car-s.webp"
     }
-  ]
+  ],
+  "survey": {
+    "enabled": false,
+    "url": "",
+    "key": "",
+    "greeting": "Hey, I'm Saathvik!"
+  }
 }

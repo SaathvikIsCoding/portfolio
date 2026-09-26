@@ -174,7 +174,13 @@
         url: str(c && c.url),
         file: str(c && c.file),
         thumb: str(c && c.thumb)
-      }))
+      })),
+      survey: {
+        enabled: !!(d.survey && d.survey.enabled),
+        url: str(d.survey && d.survey.url),
+        key: str(d.survey && d.survey.key),
+        greeting: str(d.survey && d.survey.greeting) || "Hey, I'm Saathvik!"
+      }
     };
   }
 
@@ -220,7 +226,8 @@
       projects: withIds(projects, 'title'),
       experience: c.experience.map(trim).filter((x) => x.role || x.org),
       education: c.education.map(trim).filter((e) => e.degree || e.school),
-      certifications: withIds(c.certifications.map(trim).filter((x) => x.name), 'name')
+      certifications: withIds(c.certifications.map(trim).filter((x) => x.name), 'name'),
+      survey: { ...trim(c.survey), url: c.survey.url.trim().replace(/\/+$/, '') }
     };
   }
 
@@ -872,8 +879,125 @@
           })
         ]
       });
+    },
+
+    survey() {
+      const s = content.survey;
+      const enabled = h('input', { type: 'checkbox' });
+      enabled.checked = s.enabled;
+      enabled.addEventListener('change', () => { s.enabled = enabled.checked; markDirty(); });
+
+      const settings = card(
+        h('h3', { text: 'Pop-up settings' }),
+        h('label', { class: 'check' }, enabled, 'Show the survey pop-up on my site (45 seconds into a visit, once per visitor)'),
+        field('Greeting', s, 'greeting', { placeholder: "Hey, I'm Saathvik!" }),
+        grid2(
+          field('Supabase project URL', s, 'url', { type: 'url', placeholder: 'https://abcdefgh.supabase.co' }),
+          field('Supabase publishable key', s, 'key', { placeholder: 'sb_publishable_… (or the anon key)', hint: 'Safe to be public: with the setup script it can only add responses, never read them.' })
+        ),
+        h('small', { class: 'muted' }, 'First-time setup: run ',
+          h('a', { href: 'https://github.com/SaathvikIsCoding/portfolio/blob/main/supabase/survey.sql', target: '_blank', rel: 'noopener', text: 'supabase/survey.sql' }),
+          ' once in your Supabase project (SQL Editor), then paste the URL and key here and click Save & publish.'));
+
+      // Responses: read through the passphrase-protected function; the passphrase stays in this browser tab.
+      const keyInput = h('input', { type: 'password', autocomplete: 'off', placeholder: 'Survey passphrase', 'aria-label': 'Survey passphrase' });
+      keyInput.value = readSurveyKey();
+      const loadBtn = h('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Show responses' });
+      const out = h('div', { class: 'responses' });
+
+      async function load() {
+        const key = keyInput.value.trim();
+        if (!s.url || !s.key) { out.replaceChildren(h('p', { class: 'muted', text: 'Add your Supabase URL and key above first.' })); return; }
+        if (!key) { out.replaceChildren(h('p', { class: 'muted', text: 'Enter your survey passphrase to see responses.' })); return; }
+        out.replaceChildren(h('p', { class: 'muted', text: 'Loading…' }));
+        try {
+          const rows = await surveyRpc(s, 'get_survey_responses', { admin_key: key });
+          saveSurveyKey(key);
+          showResponses(rows || []);
+        } catch (e) {
+          out.replaceChildren(h('p', { class: 'form-error', text: e.message }));
+        }
+      }
+
+      function showResponses(rows) {
+        if (!rows.length) { out.replaceChildren(h('p', { class: 'empty', text: 'No responses yet.' })); return; }
+        const tally = (key) => Object.entries(rows.reduce((m, r) => { m[r[key]] = (m[r[key]] || 0) + 1; return m; }, {}))
+          .sort((a, b) => b[1] - a[1])
+          .map(([label, n]) => h('li', { class: 'chip' }, `${label} · ${n}`));
+        const list = rows.map((r) => h('tr', null,
+          h('td', { text: new Date(r.created_at).toLocaleString() }),
+          h('td', { text: r.name }),
+          h('td', { text: r.purpose }),
+          h('td', { text: r.source }),
+          h('td', null, h('button', {
+            type: 'button', class: 'btn btn-danger btn-sm btn-icon', 'aria-label': `Delete response from ${r.name}`, title: 'Delete', text: '✕',
+            onclick: async () => {
+              if (!confirm(`Delete the response from "${r.name}"?`)) return;
+              try { await surveyRpc(s, 'delete_survey_response', { admin_key: keyInput.value.trim(), response_id: r.id }); load(); }
+              catch (e) { toast(e.message, true); }
+            }
+          }))));
+        out.replaceChildren(
+          h('p', { class: 'muted', text: `${rows.length} response${rows.length === 1 ? '' : 's'}` }),
+          h('div', { class: 'grid-2' },
+            h('div', null, h('strong', { text: 'Found you via' }), h('ul', { class: 'chip-list tally' }, tally('source'))),
+            h('div', null, h('strong', { text: 'Why they came' }), h('ul', { class: 'chip-list tally' }, tally('purpose')))),
+          h('div', { class: 'table-wrap' }, h('table', { class: 'responses-table' },
+            h('thead', null, h('tr', null, ...['Date', 'Name', 'Why they came', 'Found you via', ''].map((t) => h('th', { text: t })))),
+            h('tbody', null, list))),
+          h('div', { class: 'image-actions' }, h('button', { type: 'button', class: 'btn btn-ghost btn-sm', text: 'Download CSV', onclick: () => downloadCsv(rows) })));
+      }
+
+      loadBtn.addEventListener('click', load);
+      keyInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); load(); } });
+      if (keyInput.value && s.url && s.key) load();
+
+      return [
+        panelHead('Survey', 'A pop-up that asks visitors their name, why they came and how they found you.'),
+        settings,
+        card(h('h3', { text: 'Responses' }), h('div', { class: 'chip-add' }, keyInput, loadBtn), out)
+      ];
     }
   };
+
+  // ---------- Survey (Supabase) ----------
+  function readSurveyKey() { try { return sessionStorage.getItem('portfolio-survey-key') || ''; } catch (e) { return ''; } }
+  function saveSurveyKey(k) { try { sessionStorage.setItem('portfolio-survey-key', k); } catch (e) { /* ignore */ } }
+
+  async function surveyRpc(s, fn, body) {
+    const headers = { apikey: s.key, 'Content-Type': 'application/json' };
+    if (/^eyJ/.test(s.key)) headers.Authorization = `Bearer ${s.key}`; // legacy anon JWT keys
+    let res;
+    try {
+      res = await fetch(`${s.url.replace(/\/+$/, '')}/rest/v1/rpc/${fn}`, { method: 'POST', headers, body: JSON.stringify(body) });
+    } catch (e) {
+      throw new Error('Could not reach Supabase. Check the project URL and your connection.');
+    }
+    if (res.status === 403) throw new Error('Wrong survey passphrase.');
+    if (res.status === 401) throw new Error('Supabase rejected the key. Check the publishable key.');
+    if (res.status === 404) throw new Error('Survey table not found. Run supabase/survey.sql in your Supabase project first.');
+    if (!res.ok) throw new Error(`Supabase error (${res.status}).`);
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  }
+
+  // CSV export; cells that start with = + - @ are prefixed so spreadsheets don't run them as formulas.
+  function downloadCsv(rows) {
+    const cell = (v) => {
+      let s = String(v == null ? '' : v);
+      if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+      return `"${s.replace(/"/g, '""')}"`;
+    };
+    const lines = [['Date', 'Name', 'Why they came', 'Found you via', 'Page']]
+      .concat(rows.map((r) => [new Date(r.created_at).toISOString(), r.name, r.purpose, r.source, r.page]))
+      .map((row) => row.map(cell).join(','));
+    const url = URL.createObjectURL(new Blob([lines.join('\r\n')], { type: 'text/csv' }));
+    const a = h('a', { href: url, download: 'survey-responses.csv' });
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 
   function renderPanel() {
     const panel = $('#panel');

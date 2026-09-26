@@ -406,6 +406,7 @@
 
     document.addEventListener('pointerdown', function (e) {
       if (e.button !== 0) return;
+      if (e.target.closest && e.target.closest('dialog')) return; // no shooting while a pop-up is open
       if (useShip && e.pointerType === 'mouse') {
         if (ship.dead > 0) return;
         shots.push({ x: ship.x + Math.cos(ship.angle) * 14, y: ship.y + Math.sin(ship.angle) * 14, tx: e.clientX, ty: e.clientY });
@@ -466,9 +467,12 @@
     'ace': ['Ace Pilot', 'Ten enemy ships down.'],
     'shot-down': ['Shot Down', 'Your ship respawns in a few seconds.'],
     'explorer': ['Explorer', 'You reached the end of the map.'],
-    'konami': ['Cheat Code', '↑↑↓↓←→←→BA · Infinite creativity unlocked.']
+    'konami': ['Cheat Code', '↑↑↓↓←→←→BA · Infinite creativity unlocked.'],
+    'survey': ['Side Quest', 'Thanks for filling in the survey!']
   };
   var shotsFired = 0;
+  // Other scripts can award achievements, e.g. survey.js after a response is sent.
+  document.addEventListener('portfolio:unlock', function (e) { if (ACHIEVEMENTS[e.detail]) unlock(e.detail); });
   var queue = [];
   var showing = false;
   var tray = document.querySelector('.achievements');
