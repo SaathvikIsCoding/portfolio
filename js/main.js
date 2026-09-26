@@ -122,16 +122,12 @@
       ]);
     }));
 
-    // Hero actions
+    // Hero actions: title-screen menu
     var actions = [];
-    if (projects.length) actions.push(el('a', { class: 'btn btn-primary', href: '#projects', text: '▶ View my work' }));
-    if (safeUrl(p.resume)) {
-      var resumeBtn = externalLink(safeUrl(p.resume), 'Resume');
-      resumeBtn.className = actions.length ? 'btn btn-ghost' : 'btn btn-primary';
-      actions.push(resumeBtn);
-    }
-    actions.push(el('a', { class: 'btn btn-ghost', href: '#contact', text: 'Contact me' }));
-    slot('actions').replaceChildren.apply(slot('actions'), actions);
+    if (projects.length) actions.push(['#projects', 'View my work']);
+    if (safeUrl(p.resume)) actions.push([safeUrl(p.resume), 'Resume']);
+    actions.push(['#contact', 'Contact me']);
+    slot('actions').replaceChildren.apply(slot('actions'), menuItems(actions));
 
     // Experience and education share one quest-log timeline entry.
     function logEntry(title, details, period, description) {
@@ -203,15 +199,41 @@
 
     renderStructuredData(data);
 
-    // Contact
+    // Contact: same title-screen menu
     var contact = [];
-    if (p.email) contact.push(el('a', { class: 'btn btn-primary', href: 'mailto:' + p.email, text: 'Email me' }));
-    socials.forEach(function (s) {
-      var a = externalLink(safeUrl(s.url), s.label);
-      a.className = 'btn btn-ghost';
-      contact.push(a);
+    if (p.email) contact.push(['mailto:' + p.email, 'Email me']);
+    socials.forEach(function (s) { contact.push([safeUrl(s.url), s.label]); });
+    slot('contact').replaceChildren.apply(slot('contact'), menuItems(contact));
+  }
+
+  // Title-screen menu items; the first one starts selected, like a game's main menu.
+  function menuItems(items) {
+    return items.map(function (item, i) {
+      var a = externalLink(item[0], item[1]);
+      if (i === 0) a.classList.add('is-selected');
+      return el('li', null, [a]);
     });
-    slot('contact').replaceChildren.apply(slot('contact'), contact);
+  }
+
+  // The ▶ cursor follows the mouse and keyboard focus; ↑/↓ move between items.
+  function setupMenus() {
+    function select(link) {
+      var menu = link.closest('.title-menu');
+      menu.querySelectorAll('a.is-selected').forEach(function (a) { a.classList.remove('is-selected'); });
+      link.classList.add('is-selected');
+    }
+    function menuLink(e) { return e.target.closest && e.target.closest('.title-menu a'); }
+    document.addEventListener('mouseover', function (e) { var a = menuLink(e); if (a) select(a); });
+    document.addEventListener('focusin', function (e) { var a = menuLink(e); if (a) select(a); });
+    document.addEventListener('keydown', function (e) {
+      var a = menuLink(e);
+      if (!a || (e.key !== 'ArrowDown' && e.key !== 'ArrowUp')) return;
+      var links = Array.prototype.slice.call(a.closest('.title-menu').querySelectorAll('a'));
+      var next = links[(links.indexOf(a) + (e.key === 'ArrowDown' ? 1 : -1) + links.length) % links.length];
+      e.preventDefault();
+      next.focus();
+      select(next);
+    });
   }
 
   function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -338,6 +360,7 @@
   }
 
   setupNav();
+  setupMenus();
 
   fetch('content/content.json?v=' + Date.now(), { cache: 'no-store' })
     .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })

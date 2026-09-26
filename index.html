@@ -52,8 +52,11 @@
           <h1 class="hero-name glitch" data-bind="name">&nbsp;</h1>
           <p class="hero-role"><span class="pixel-label">Class</span> <span data-bind="role"></span></p>
           <p class="hero-tagline" data-bind="tagline"></p>
-          <div class="hero-actions" data-slot="actions"></div>
-          <ul class="social-list" data-slot="socials"></ul>
+          <ul class="title-menu hero-menu" data-slot="actions" aria-label="Quick links"></ul>
+          <div class="social-row">
+            <span class="social-label pixel">Find me on</span>
+            <ul class="social-list" data-slot="socials"></ul>
+          </div>
         </div>
         <div class="hero-photo">
           <div class="char-frame">
@@ -118,7 +121,7 @@
         <h2 class="section-title" id="contact-title">Let's work together</h2>
         <p class="contact-lead">Building a game, a world or a campaign? Looking for a designer for your team? Player 2 is always welcome.</p>
         <p class="press-start pixel" aria-hidden="true">Press start</p>
-        <div class="contact-actions" data-slot="contact"></div>
+        <ul class="title-menu" data-slot="contact" aria-label="Contact options"></ul>
       </div>
     </section>
 

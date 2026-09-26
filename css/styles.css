@@ -170,30 +170,25 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
 .brand:hover { color: var(--color-accent); }
 
 .site-nav { order: 3; }
-.hud-level {
+/* Header HUD: the level readout, the game switch and the menu button share one box style */
+.hud-level, .game-toggle {
   order: 1;
-  font-family: var(--font-pixel);
-  font-size: 0.62rem;
-  color: var(--color-gold);
-  padding: 6px 8px;
-  border: 1px solid var(--color-border);
-  white-space: nowrap;
-}
-.game-toggle {
-  order: 1;
-  min-height: 44px;
-  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 12px;
   font-family: var(--font-pixel);
   font-size: 0.6rem;
+  line-height: 1;
   text-transform: uppercase;
   white-space: nowrap;
-  color: var(--color-accent-2);
-  background: var(--color-surface);
+  color: var(--color-gold);
+  background: transparent;
   border: 1px solid var(--color-border);
-  cursor: pointer;
 }
+.game-toggle { cursor: pointer; }
 .game-toggle[aria-pressed="false"] { color: var(--color-muted); }
-.game-toggle:hover { border-color: var(--color-accent-2); }
+.game-toggle:hover, .nav-toggle:hover { border-color: var(--color-gold); }
 .game-toggle[hidden] { display: none; }
 
 .nav-list {
@@ -224,8 +219,8 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
   width: 44px;
   height: 44px;
   border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text);
+  background: transparent;
+  color: var(--color-gold);
   cursor: pointer;
 }
 .nav-toggle { display: none; }
@@ -290,41 +285,43 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
   .game-toggle { display: none; }
 }
 
-/* ---------- Buttons: arcade style with offset pixel shadow ---------- */
-.btn {
+/* ---------- Title-screen menu (hero + contact actions) ----------
+   Stacked items like a game's main menu; a blinking ▶ marks the selected one. */
+.title-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  justify-items: start;
+  gap: var(--space-1);
+}
+.title-menu:empty { display: none; }
+.title-menu a {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  min-height: 48px;
-  padding: var(--space-3) var(--space-5);
-  border: 2px solid transparent;
-  border-radius: 0;
+  min-height: 44px;
+  padding-left: 2rem;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1rem;
+  font-size: clamp(1.2rem, 0.8vw + 1rem, 1.55rem);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   text-decoration: none;
-  transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.15s ease;
+  color: var(--color-muted);
 }
-.btn-primary {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-  box-shadow: 4px 4px 0 var(--color-accent-2);
+.title-menu a[target="_blank"]::after { content: "↗"; margin-left: 0.4em; font-size: 0.8em; }
+.title-menu a::before {
+  content: "▶";
+  position: absolute;
+  left: 0.2rem;
+  font-size: 0.7em;
+  color: var(--color-accent-2);
+  visibility: hidden;
 }
-.btn-primary:hover { background: var(--color-accent-strong); color: var(--color-on-accent); }
-.btn-ghost {
-  background: var(--color-surface);
-  border-color: var(--color-text);
-  color: var(--color-text);
-  box-shadow: 4px 4px 0 var(--color-accent);
-}
-.btn-ghost:hover { color: var(--color-accent); border-color: var(--color-accent); }
-.btn:hover { transform: translate(-1px, -1px); }
-.btn-primary:hover { box-shadow: 5px 5px 0 var(--color-accent-2); }
-.btn-ghost:hover { box-shadow: 5px 5px 0 var(--color-accent); }
-.btn:active { transform: translate(4px, 4px); box-shadow: 0 0 0 transparent; }
+.title-menu a.is-selected { color: var(--color-accent); }
+.title-menu a.is-selected::before { visibility: visible; animation: blink 1s steps(2, start) infinite; }
+.title-menu a:active { transform: translateX(4px); }
 
 /* ---------- Hero ---------- */
 .hero {
@@ -406,23 +403,30 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
   color: var(--color-muted);
 }
 
-.hero-actions {
+.hero-menu { margin-top: var(--space-6); }
+
+/* "Find me on" row, set off from the menu by the dashed pixel rule */
+.social-row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-4);
-  margin-top: var(--space-6);
+  align-items: center;
+  gap: 0 var(--space-5);
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+  max-width: 34rem;
+  border-top: 4px solid transparent;
+  border-image: var(--dash-rule) 4;
 }
-
-/* Button tiers used site-wide: .btn-primary (main action) > .btn-ghost (secondary) > text links (tertiary) */
+.social-row:has(.social-list:empty) { display: none; }
+.social-label { font-size: 0.55rem; color: var(--color-accent-2); }
 .social-list {
   list-style: none;
   padding: 0;
-  margin: var(--space-4) 0 0;
+  margin: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0 var(--space-5);
 }
-.social-list:empty { display: none; }
 .social-list a {
   display: inline-flex;
   align-items: center;
@@ -786,7 +790,6 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
 /* Contact */
 .contact-lead { margin: 0 0 var(--space-5); max-width: 36rem; color: var(--color-muted); font-size: 1.1rem; }
 .press-start { margin: 0 0 var(--space-5); color: var(--color-gold); animation: blink 1.1s steps(2, start) infinite; }
-.contact-actions { display: flex; flex-wrap: wrap; gap: var(--space-4); }
 
 /* Footer */
 .site-footer {
