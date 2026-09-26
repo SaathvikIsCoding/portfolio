@@ -115,7 +115,11 @@
     var facts = [];
     if (p.location) facts.push(['Location', el('span', { class: 'fact-value', text: p.location })]);
     if (p.email) facts.push(['Email', el('a', { class: 'fact-value', href: 'mailto:' + p.email, text: p.email })]);
-    if (safeUrl(p.resume)) facts.push(['Resume', externalLink(safeUrl(p.resume), 'View resume')]);
+    if (safeUrl(p.resume)) {
+      var resumeLink = externalLink(safeUrl(p.resume), 'View resume');
+      resumeLink.className = 'fact-value'; // same style as the Location and Email values
+      facts.push(['Resume', resumeLink]);
+    }
     slot('facts').replaceChildren.apply(slot('facts'), facts.map(function (f) {
       return el('li', null, [el('div', { class: 'fact-label', text: f[0] }), f[1]]);
     }));
