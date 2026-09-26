@@ -319,6 +319,12 @@ details > summary { cursor: pointer; font-weight: 600; min-height: 32px; display
 
 .empty { color: var(--muted); text-align: center; padding: 1.5rem; border: 1px dashed var(--border); border-radius: var(--radius); }
 
+/* Survey key check under the key field */
+.key-check { margin: 0.35rem 0 0; font-size: 0.88rem; }
+.key-check:empty { display: none; }
+.key-check.is-good { color: var(--success); }
+.key-check.is-bad { color: var(--danger); }
+
 /* Survey responses */
 .responses { display: grid; gap: 1rem; }
 .tally { margin-top: 0.5rem; }

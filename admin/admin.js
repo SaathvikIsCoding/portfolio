@@ -320,6 +320,11 @@
   // ---------- Save ----------
   async function save() {
     if (saving || !dirty) return;
+    // Everything saved here becomes public on GitHub, so never let a secret key through.
+    if (surveyKeyKind(content.survey.key) === 'secret') {
+      toast('That Supabase key is a SECRET key and would become public. Replace it with the Publishable key (Survey tab) before saving.', true);
+      return;
+    }
     saving = true;
     updateStatus();
     try {
@@ -883,6 +888,20 @@
 
     survey() {
       const s = content.survey;
+      // Live check of the pasted key, so a password or secret key doesn't get published by mistake.
+      const keyStatus = h('p', { class: 'key-check', role: 'status' });
+      function checkKey() {
+        const kind = surveyKeyKind(s.key);
+        const messages = {
+          empty: '',
+          secret: '⚠️ This is a SECRET key. Never put it on your site. Copy the Publishable key instead (Saving is blocked until you do).',
+          public: '✓ Looks like a publishable key.',
+          other: 'This isn’t a publishable key. It should start with sb_publishable_ (or eyJ… for the older anon key). A database password won’t work here.'
+        };
+        keyStatus.textContent = messages[kind];
+        keyStatus.className = 'key-check' + (kind === 'public' ? ' is-good' : kind === 'empty' ? '' : ' is-bad');
+      }
+      checkKey();
       const enabled = h('input', { type: 'checkbox' });
       enabled.checked = s.enabled;
       enabled.addEventListener('change', () => { s.enabled = enabled.checked; markDirty(); });
@@ -893,7 +912,9 @@
         field('Greeting', s, 'greeting', { placeholder: "Hey, I'm Saathvik!" }),
         grid2(
           field('Supabase project URL', s, 'url', { type: 'url', placeholder: 'https://abcdefgh.supabase.co' }),
-          field('Supabase publishable key', s, 'key', { placeholder: 'sb_publishable_… (or the anon key)', hint: 'Safe to be public: with the setup script it can only add responses, never read them.' })
+          h('div', { class: 'field' },
+            field('Supabase publishable key', s, 'key', { placeholder: 'sb_publishable_… (or the anon key)', hint: 'Safe to be public: with the setup script it can only add responses, never read them.', onChange: checkKey }),
+            keyStatus)
         ),
         h('small', { class: 'muted' }, 'First-time setup: run ',
           h('a', { href: 'https://github.com/SaathvikIsCoding/portfolio/blob/main/supabase/survey.sql', target: '_blank', rel: 'noopener', text: 'supabase/survey.sql' }),
@@ -961,6 +982,21 @@
   };
 
   // ---------- Survey (Supabase) ----------
+  // 'public' = publishable or legacy anon key (fine to publish); 'secret' = must never be published.
+  function surveyKeyKind(key) {
+    const k = (key || '').trim();
+    if (!k) return 'empty';
+    if (/^sb_secret_/.test(k)) return 'secret';
+    if (/^sb_publishable_[\w-]{10,}$/.test(k)) return 'public';
+    if (/^eyJ[\w-]+\.[\w-]+\.[\w-]+$/.test(k)) {
+      try {
+        const role = JSON.parse(atob(k.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).role;
+        return role === 'anon' ? 'public' : 'secret'; // legacy service_role JWT
+      } catch (e) { return 'other'; }
+    }
+    return 'other';
+  }
+
   function readSurveyKey() { try { return sessionStorage.getItem('portfolio-survey-key') || ''; } catch (e) { return ''; } }
   function saveSurveyKey(k) { try { sessionStorage.setItem('portfolio-survey-key', k); } catch (e) { /* ignore */ } }
 

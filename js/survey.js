@@ -20,8 +20,11 @@
 
   if (lget(DONE_KEY)) return;
 
+  // Only show the pop-up when it can actually save: a real Supabase URL and a public
+  // (publishable or legacy anon) key — never something else pasted by mistake.
+  var PUBLIC_KEY = /^(sb_publishable_[\w-]{10,}|eyJ[\w-]+\.[\w-]+\.[\w-]+)$/;
   function configured(s) {
-    return s && s.enabled && /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(s.url || '') && s.key;
+    return s && s.enabled && /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(s.url || '') && PUBLIC_KEY.test(s.key || '');
   }
 
   function headers(key) {
