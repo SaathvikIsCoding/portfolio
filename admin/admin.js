@@ -9,6 +9,18 @@
   const STORE_KEY = 'portfolio-admin';
   const PROFILE_KEYS = ['name', 'role', 'tagline', 'about', 'summary', 'photo', 'location', 'email', 'resume'];
 
+  // Project page section types (the dropdown in the admin). Keep in sync with js/detail.js.
+  const SECTION_TYPES = [
+    ['text', 'Text only'],
+    ['images-1', 'Text + 1 image'],
+    ['images-2', 'Text + 2 images'],
+    ['images-3', 'Text + 3 images'],
+    ['images-4', 'Text + 4 images'],
+    ['html', 'Text + HTML embed'],
+    ['figma', 'Text + Figma embed']
+  ];
+  const imageCount = (type) => { const m = /^images-([1-4])$/.exec(type || ''); return m ? Number(m[1]) : 0; };
+
   const $ = (sel) => document.querySelector(sel);
 
   let session = null;        // { owner, repo, branch, token }
@@ -132,6 +144,14 @@
         live: str(pr && pr.live),
         repo: str(pr && pr.repo),
         process: str(pr && pr.process),
+        sections: arr(pr && pr.sections).map((s) => ({
+          type: SECTION_TYPES.some(([v]) => v === (s && s.type)) ? s.type : 'text',
+          heading: str(s && s.heading),
+          text: str(s && s.text),
+          images: arr(s && s.images).map((g) => ({ src: str(g && g.src), caption: str(g && g.caption) })),
+          html: str(s && s.html),
+          figma: str(s && s.figma)
+        })),
         gallery: arr(pr && pr.gallery).map((g) => ({ src: str(g && g.src), caption: str(g && g.caption) }))
       })),
       experience: arr(d.experience).map((x) => ({
@@ -175,11 +195,22 @@
     });
   }
 
+  // Only keep the fields that matter for the section's type (e.g. no leftover images on a text section).
+  function cleanSection(s) {
+    const out = { type: s.type, heading: s.heading.trim(), text: s.text.trim() };
+    const n = imageCount(s.type);
+    if (n) out.images = s.images.slice(0, n).map((g) => ({ src: g.src.trim(), caption: g.caption.trim() })).filter((g) => g.src);
+    if (s.type === 'html') out.html = s.html.trim();
+    if (s.type === 'figma') out.figma = s.figma.trim();
+    return out;
+  }
+
   function cleaned(c) {
     const trim = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v]));
     const projects = c.projects.map((p) => ({
       ...trim(p),
-      gallery: p.gallery.map(trim).filter((g) => g.src)
+      gallery: p.gallery.map(trim).filter((g) => g.src),
+      sections: p.sections.map(cleanSection).filter((s) => s.heading || s.text || (s.images && s.images.length) || s.html || s.figma)
     })).filter((p) => p.title);
     return {
       profile: trim(c.profile),
@@ -295,6 +326,7 @@
         data.profile.photo,
         ...data.projects.map((p) => p.image),
         ...data.projects.flatMap((p) => p.gallery.map((g) => g.src)),
+        ...data.projects.flatMap((p) => p.sections.flatMap((s) => (s.images || []).map((g) => g.src))),
         ...data.certifications.map((c) => c.file)
       ].filter(Boolean));
       const tree = [];
@@ -431,6 +463,101 @@
       h('span', { text: label }),
       h('div', { class: 'image-picker' }, slot, h('div', { class: 'image-actions' }, uploadBtn, removeBtn, fileInput)),
       hint ? h('small', { text: hint }) : null);
+  }
+
+  // Project page builder: a list of sections, each with a type (dropdown), heading, description,
+  // and — depending on the type — 1–4 images, an HTML embed or a Figma link.
+  function sectionsEditor(p) {
+    const list = h('div', { class: 'sections-edit' });
+    const newSection = () => ({ type: 'text', heading: '', text: '', images: [], html: '', figma: '' });
+
+    function card(s, i) {
+      const specific = h('div', { class: 'section-specific' });
+      const typeSelect = h('select', { 'aria-label': `Section ${i + 1} type` },
+        SECTION_TYPES.map(([value, label]) => h('option', { value, text: label })));
+      typeSelect.value = s.type;
+      typeSelect.addEventListener('change', () => { s.type = typeSelect.value; markDirty(); drawSpecific(); });
+
+      function drawSpecific() {
+        const n = imageCount(s.type);
+        if (n) {
+          while (s.images.length < n) s.images.push({ src: '', caption: '' });
+          specific.replaceChildren(h('div', { class: `section-images cols-${n}` },
+            s.images.slice(0, n).map((img, k) => h('div', { class: 'section-image' },
+              imagePicker(`Image ${k + 1}`, img, 'src', { shape: 'wide', maxSize: 2000 }),
+              field('Caption', img, 'caption', { placeholder: 'Optional' })))));
+        } else if (s.type === 'html') {
+          specific.replaceChildren(field('HTML / embed code', s, 'html', {
+            multiline: true, rows: 8, cls: 'code-field', placeholder: '<iframe src="https://www.youtube.com/embed/…"></iframe>',
+            hint: 'Paste embed code (YouTube, Vimeo, Sketchfab, itch.io, CodePen…) or your own HTML. It runs in an isolated frame, so it can’t break the rest of your site.'
+          }));
+        } else if (s.type === 'figma') {
+          specific.replaceChildren(field('Figma link', s, 'figma', {
+            type: 'url', placeholder: 'https://www.figma.com/design/…',
+            hint: 'In Figma: Share → set access to "Anyone with the link can view" → Copy link, then paste it here. Works for design files and prototypes.'
+          }));
+        } else {
+          specific.replaceChildren();
+        }
+      }
+      drawSpecific();
+
+      const move = (dir) => () => {
+        const j = i + dir;
+        if (j < 0 || j >= p.sections.length) return;
+        [p.sections[i], p.sections[j]] = [p.sections[j], p.sections[i]];
+        markDirty();
+        draw();
+      };
+
+      return h('div', { class: 'section-card' },
+        h('div', { class: 'section-card-head' },
+          h('strong', { text: `Section ${i + 1}` }),
+          h('div', { class: 'item-tools' },
+            h('button', { type: 'button', class: 'btn btn-ghost btn-sm btn-icon', 'aria-label': 'Move section up', title: 'Move up', text: '↑', disabled: i === 0, onclick: move(-1) }),
+            h('button', { type: 'button', class: 'btn btn-ghost btn-sm btn-icon', 'aria-label': 'Move section down', title: 'Move down', text: '↓', disabled: i === p.sections.length - 1, onclick: move(1) }),
+            h('button', {
+              type: 'button', class: 'btn btn-danger btn-sm btn-icon', 'aria-label': 'Delete section', title: 'Delete', text: '✕',
+              onclick: () => {
+                if (!confirm(`Delete section ${i + 1}${s.heading ? ` ("${s.heading}")` : ''}?`)) return;
+                p.sections.splice(i, 1);
+                markDirty();
+                draw();
+              }
+            }))),
+        h('label', { class: 'field' }, h('span', { text: 'Section type' }), typeSelect),
+        field('Heading', s, 'heading', { placeholder: 'e.g. Research, Level blockout, Final renders' }),
+        field('Description', s, 'text', {
+          multiline: true, rows: 5,
+          hint: 'Empty line = new paragraph. Start a line with "## " for a sub-heading or "- " for a bullet.'
+        }),
+        specific);
+    }
+
+    function draw() {
+      list.replaceChildren(...(p.sections.length
+        ? p.sections.map(card)
+        : [h('p', { class: 'muted', text: 'No sections yet. Add one to build out the project page.' })]));
+    }
+    draw();
+
+    const addBtn = h('button', {
+      type: 'button', class: 'btn btn-primary btn-sm', text: 'Add section',
+      onclick: () => {
+        p.sections.push(newSection());
+        markDirty();
+        draw();
+        const cards = list.querySelectorAll('.section-card');
+        const last = cards[cards.length - 1];
+        if (last) { last.scrollIntoView({ block: 'center' }); last.querySelector('select').focus(); }
+      }
+    });
+
+    return h('div', { class: 'field' },
+      h('span', { text: 'Sections' }),
+      h('small', { text: 'Build the project page from blocks, in order. Pick a type for each: text only, text with 1–4 images, an HTML embed, or a Figma embed.' }),
+      list,
+      h('div', { class: 'image-actions' }, addBtn));
   }
 
   // Several images with captions (project gallery): add many at once, reorder, remove.
@@ -648,7 +775,7 @@
         intro: 'Your work. Each project gets its own page with your process and gallery. The first project appears first on your site.',
         addText: 'Add project',
         emptyText: 'No projects yet. Click "Add project" to add your first one.',
-        create: () => ({ id: '', title: '', description: '', role: '', period: '', tech: [], image: '', live: '', repo: '', process: '', gallery: [] }),
+        create: () => ({ id: '', title: '', description: '', role: '', period: '', tech: [], image: '', live: '', repo: '', process: '', sections: [], gallery: [] }),
         summary: (p) => p.title || 'Untitled project',
         body: (p, refresh) => [
           field('Project name', p, 'title', { onChange: refresh }),
@@ -667,6 +794,7 @@
             multiline: true, rows: 12,
             hint: 'Walk visitors through how you made it: the brief, research, sketches, iterations, problems you solved, what you learned. Leave an empty line between paragraphs. Start a line with "## " for a sub-heading and "- " for a bullet point.'
           }),
+          sectionsEditor(p),
           galleryEditor(p)
         ]
       });

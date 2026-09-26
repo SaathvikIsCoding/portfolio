@@ -145,6 +145,85 @@
     }));
   }
 
+  // ---------- Project sections (built in the admin from blocks) ----------
+  function imageCount(type) {
+    var m = /^images-([1-4])$/.exec(type || '');
+    return m ? Number(m[1]) : 0;
+  }
+
+  function figmaEmbedUrl(url) {
+    if (!/^https:\/\/([\w-]+\.)?figma\.com\//i.test(url || '')) return '';
+    return 'https://www.figma.com/embed?embed_host=share&url=' + encodeURIComponent(url);
+  }
+
+  // Custom HTML runs inside a sandboxed data: URL frame. data: frames always get their own
+  // opaque origin, so the HTML can't touch this site (cookies, storage, page), while embeds
+  // inside it (YouTube, Sketchfab, CodePen…) still work. A tiny script reports its height.
+  function htmlEmbed(html, title) {
+    var doc = '<!doctype html><html><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><base target="_blank">' +
+      // color-scheme must match the dark site, or the browser paints a white backdrop behind the frame.
+      '<style>:root{color-scheme:dark}html,body{margin:0;padding:0;background:transparent;color:#f2f2f2;font:16px/1.6 system-ui,sans-serif}' +
+      'img,video,iframe,canvas{max-width:100%}a{color:#22d3ee}</style></head><body>' + html +
+      '<script>(function(){function s(){parent.postMessage({portfolioEmbedHeight:Math.ceil(document.documentElement.scrollHeight)},"*")}' +
+      'addEventListener("load",s);if(window.ResizeObserver)new ResizeObserver(s).observe(document.body);s()})()<\/script></body></html>';
+    return el('div', { class: 'embed embed-html' }, [el('iframe', {
+      src: 'data:text/html;charset=utf-8,' + encodeURIComponent(doc),
+      title: title,
+      loading: 'lazy',
+      sandbox: 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation allow-forms',
+      allow: 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write'
+    })]);
+  }
+
+  // Resize HTML embeds to fit their content.
+  window.addEventListener('message', function (e) {
+    var h = e.data && e.data.portfolioEmbedHeight;
+    if (typeof h !== 'number') return;
+    document.querySelectorAll('.embed-html iframe').forEach(function (frame) {
+      if (frame.contentWindow === e.source) frame.style.height = Math.min(Math.max(h, 60), 4000) + 'px';
+    });
+  });
+
+  function shotGrid(images, title) {
+    var items = images.map(function (g, i) {
+      return { src: g.src, caption: g.caption || '', alt: g.caption || title + ', image ' + (i + 1) };
+    });
+    return el('div', { class: 'shot-grid shots-' + items.length }, items.map(function (item, i) {
+      var button = el('button', { type: 'button', class: 'gallery-item', 'aria-label': 'Open image' + (item.caption ? ': ' + item.caption : ' ' + (i + 1)) }, [
+        el('img', { src: item.src, alt: item.alt, loading: 'lazy' }),
+        item.caption ? el('span', { class: 'gallery-caption', text: item.caption }) : null
+      ]);
+      button.addEventListener('click', function () { openLightbox(items, i); });
+      return button;
+    }));
+  }
+
+  function projectSections(pr) {
+    return (pr.sections || []).map(function (s, i) {
+      var heading = s.heading || '';
+      var images = (s.images || []).slice(0, imageCount(s.type)).filter(function (g) { return g && safeUrl(g.src); })
+        .map(function (g) { return { src: safeUrl(g.src), caption: g.caption || '' }; });
+      var media = null;
+      if (images.length) media = shotGrid(images, heading || pr.title);
+      else if (s.type === 'html' && s.html) media = htmlEmbed(s.html, heading || pr.title + ' embed');
+      else if (s.type === 'figma' && figmaEmbedUrl(s.figma)) {
+        media = el('div', null, [
+          el('div', { class: 'embed embed-figma' }, [el('iframe', { src: figmaEmbedUrl(s.figma), title: (heading || pr.title) + ' (Figma)', loading: 'lazy', allowfullscreen: '' })]),
+          el('div', { class: 'pixel-btns embed-links' }, [P.externalLink(s.figma, 'Open in Figma')])
+        ]);
+        media.querySelector('.embed-links a').className = 'pixel-btn pixel-btn-sm';
+      }
+      if (!heading && !s.text && !media) return null;
+      return el('section', { class: 'detail-section' }, [
+        el('p', { class: 'level-tag pixel', text: 'Part ' + P.pad(i + 1) }),
+        heading ? el('h2', { class: 'section-title', text: heading }) : null,
+        s.text ? prose(s.text) : null,
+        media
+      ]);
+    }).filter(Boolean);
+  }
+
   // ---------- Project page ----------
   function renderProject(data) {
     var list = P.projectsOf(data);
@@ -178,10 +257,11 @@
       rows.length ? metaStrip(rows) : null,
       links.length ? el('div', { class: 'pixel-btns detail-links' }, P.pixelButtons(links)) : null,
       cover ? el('figure', { class: 'detail-cover' }, [el('img', { src: cover, alt: 'Cover image of ' + pr.title })]) : null,
-      pr.process ? section('Walkthrough', 'The process', prose(pr.process)) : null,
+      pr.process ? section('Walkthrough', 'The process', prose(pr.process)) : null
+    ].concat(projectSections(pr), [
       gallery.length ? section('Screenshots', 'Gallery', galleryGrid(gallery)) : null,
       pager(list, index, 'project.html?id=', 'quest')
-    ].filter(Boolean));
+    ]).filter(Boolean));
   }
 
   // ---------- Certificate page ----------
