@@ -62,7 +62,6 @@
     sprites.heartEmpty = makeSprite(ART.heart, { '#': 'rgba(150,160,190,0.35)' }, 2);
     if (reduceMotion) drawStars(0);
   }
-  new MutationObserver(readColors).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
 
   // ---------- Canvas sizing ----------
   function resize() {
@@ -288,7 +287,7 @@
     }
     fctx.fillStyle = colors.gold;
     fctx.fillText('SCORE ' + pad6(score), x, y - 20);
-    fctx.fillStyle = '#c7d0ff';
+    fctx.fillStyle = '#d9d9d9';
     fctx.fillText('HI ' + pad6(Math.max(best, score)), x, y - 4);
     fctx.textAlign = 'start';
   }

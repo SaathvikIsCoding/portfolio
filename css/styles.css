@@ -1,11 +1,11 @@
-/* ---------- Tokens (dark "night level" is the default) ---------- */
+/* ---------- Tokens (dark only: true black with neutral greys) ---------- */
 :root {
-  --color-bg: #070a14;
-  --color-surface: #0f1424;
-  --color-surface-2: #0b1020;
-  --color-text: #e6ebff;
-  --color-muted: #9aa4c7;
-  --color-border: #1f2a4a;
+  --color-bg: #000000;
+  --color-surface: #0e0e0e;
+  --color-surface-2: #080808;
+  --color-text: #f2f2f2;
+  --color-muted: #a6a6a6;
+  --color-border: #262626;
   --color-accent: #22d3ee;
   --color-accent-strong: #67e8f9;
   --color-accent-soft: rgb(34 211 238 / 0.12);
@@ -13,7 +13,7 @@
   --color-gold: #facc15;
   --color-success: #4ade80;
   --color-on-accent: #041018;
-  --color-star: #cfe8ff;
+  --color-star: #ffffff;
   --glow: 0 0 0 1px rgb(34 211 238 / 0.35), 0 0 24px rgb(34 211 238 / 0.25);
 
   --font-display: "Chakra Petch", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -34,25 +34,6 @@
   --notch: 10px;
   --header-h: 64px;
   color-scheme: dark;
-}
-
-:root[data-theme="light"] {
-  --color-bg: #eef1fb;
-  --color-surface: #ffffff;
-  --color-surface-2: #e4e8f7;
-  --color-text: #0b1020;
-  --color-muted: #4a5578;
-  --color-border: #cad2ec;
-  --color-accent: #0e7490;
-  --color-accent-strong: #155e75;
-  --color-accent-soft: rgb(14 116 144 / 0.1);
-  --color-accent-2: #be185d;
-  --color-gold: #a16207;
-  --color-success: #15803d;
-  --color-on-accent: #ffffff;
-  --color-star: #6b7bb8;
-  --glow: 0 0 0 1px rgb(14 116 144 / 0.35), 0 8px 24px rgb(14 116 144 / 0.15);
-  color-scheme: light;
 }
 
 /* ---------- Base ---------- */
@@ -198,8 +179,6 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
   border: 1px solid var(--color-border);
   white-space: nowrap;
 }
-.theme-toggle { order: 2; }
-
 .game-toggle {
   order: 1;
   min-height: 44px;
@@ -240,7 +219,7 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
 .nav-list a::before { content: "▸"; margin-right: 4px; opacity: 0; transition: opacity 0.15s; color: var(--color-accent-2); }
 .nav-list a:hover::before { opacity: 1; }
 
-.nav-toggle, .theme-toggle {
+.nav-toggle {
   display: inline-grid;
   place-items: center;
   width: 44px;
@@ -251,11 +230,6 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
   color: var(--color-text);
   cursor: pointer;
 }
-.theme-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-.icon-sun { display: none; }
-:root[data-theme="light"] .icon-sun { display: block; }
-:root[data-theme="light"] .icon-moon { display: none; }
-
 .nav-toggle { display: none; }
 .nav-toggle-bar, .nav-toggle-bar::before, .nav-toggle-bar::after {
   display: block;
@@ -511,28 +485,46 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
   background: linear-gradient(135deg, var(--color-accent-soft), var(--color-surface-2));
 }
 
-/* Stats HUD */
+/* Stats: arcade scoreboard strip (think the score line at the top of Galaga) */
 .hero-stats {
   margin: var(--space-7) 0 0;
+  padding: var(--space-5) 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
+  gap: var(--space-6) var(--space-4);
+  text-align: center;
+  border-block: 4px solid transparent;
+  border-inline: 0;
+  border-image: repeating-linear-gradient(90deg, var(--color-border) 0 12px, transparent 12px 20px) 4;
 }
 .hero-stats:empty { display: none; }
-.stat {
-  padding: var(--space-4);
-  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
-  border: 1px solid var(--color-border);
-  border-left: 4px solid var(--color-accent);
+.stat dt {
+  font-family: var(--font-pixel);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent-2);
 }
-.stat:nth-child(2) { border-left-color: var(--color-accent-2); }
-.stat:nth-child(3) { border-left-color: var(--color-gold); }
-.stat:nth-child(4) { border-left-color: var(--color-success); }
-.stat dt { font-family: var(--font-pixel); font-size: 0.55rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-muted); }
-.stat dd { margin: var(--space-2) 0 0; font-family: var(--font-display); font-size: 2rem; font-weight: 700; line-height: 1; }
+.stat dd {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-pixel);
+  font-size: clamp(1.5rem, 2.4vw + 0.8rem, 2.4rem);
+  line-height: 1;
+  color: var(--color-text);
+  text-shadow: 3px 3px 0 rgb(34 211 238 / 0.35);
+}
+.stat dd small {
+  margin-left: 0.35em;
+  font-size: 0.35em;
+  letter-spacing: 0.1em;
+  color: var(--color-muted);
+  text-shadow: none;
+  vertical-align: 0.3em;
+}
 
 @media (min-width: 700px) {
-  .hero-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .hero-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-4); }
+  .stat + .stat { border-left: 2px dotted var(--color-border); }
 }
 @media (min-width: 900px) {
   .hero { padding-block: var(--space-8) var(--space-7); }

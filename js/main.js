@@ -176,12 +176,15 @@
     // Player stats (all derived from real content)
     var stats = [];
     var xp = experienceLength(exp);
-    if (xp) stats.push(['Years of XP', xp]);
-    if (projects.length) stats.push(['Quests', String(projects.length)]);
-    if (skills.length) stats.push(['Skills unlocked', String(skills.length)]);
-    if (certs.length) stats.push(['Achievements', String(certs.length)]);
+    if (xp) stats.push(['Experience', xp, /mo$/.test(xp) ? '' : 'yrs']);
+    if (projects.length) stats.push(['Quests', pad(projects.length)]);
+    if (skills.length) stats.push(['Skills', pad(skills.length)]);
+    if (certs.length) stats.push(['Badges', pad(certs.length)]);
     slot('stats').replaceChildren.apply(slot('stats'), stats.map(function (s) {
-      return el('div', { class: 'stat' }, [el('dt', { text: s[0] }), el('dd', { text: s[1] })]);
+      return el('div', { class: 'stat' }, [
+        el('dt', { text: s[0] }),
+        el('dd', null, [document.createTextNode(s[1]), s[2] ? el('small', { text: s[2] }) : null])
+      ]);
     }));
 
     // Level numbers follow the visible sections, so hidden ones don't leave gaps.
@@ -296,17 +299,6 @@
     window.matchMedia('(min-width: 1200px)').addEventListener('change', close);
   }
 
-  function setupTheme() {
-    var btn = document.querySelector('.theme-toggle');
-    btn.addEventListener('click', function () {
-      var root = document.documentElement;
-      var current = root.dataset.theme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      var next = current === 'dark' ? 'light' : 'dark';
-      root.dataset.theme = next;
-      try { localStorage.setItem('theme', next); } catch (e) {}
-    });
-  }
-
   function setupReveal() {
     var items = document.querySelectorAll('.reveal');
     if (!('IntersectionObserver' in window)) { items.forEach(function (n) { n.classList.add('is-visible'); }); return; }
@@ -319,7 +311,6 @@
   }
 
   setupNav();
-  setupTheme();
 
   fetch('content/content.json?v=' + Date.now(), { cache: 'no-store' })
     .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
