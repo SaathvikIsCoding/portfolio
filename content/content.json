@@ -179,8 +179,8 @@
   ],
   "survey": {
     "enabled": true,
-    "url": "",
-    "key": "saathvikiscoding",
+    "url": "https://egdcepaeryqoizifryvx.supabase.co",
+    "key": "wz0DeUCxsE695K24",
     "greeting": "Hey, I'm Saathvik!"
   }
 }
