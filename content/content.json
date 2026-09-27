@@ -48,7 +48,29 @@
     "Creative Testing",
     "Audience Targeting"
   ],
-  "projects": [],
+  "projects": [
+    {
+      "id": "qwink",
+      "title": "Qwink",
+      "description": "",
+      "role": "",
+      "period": "",
+      "tech": [],
+      "image": "",
+      "live": "",
+      "repo": "",
+      "process": "",
+      "sections": [
+        {
+          "type": "figma",
+          "heading": "",
+          "text": "",
+          "figma": "https://www.figma.com/board/oX6GnkeuHbh7Bt6T8vquMW/Untitled?node-id=0-1&t=0b6eHuOoXKqkW83F-1"
+        }
+      ],
+      "gallery": []
+    }
+  ],
   "experience": [
     {
       "role": "Digital Marketing Specialist",
