@@ -155,7 +155,7 @@
         a.className = 'pixel-btn pixel-btn-sm';
         links.push(a);
       });
-      return el('article', { class: 'project-card panel reveal' }, [
+      return el('article', { class: 'project-card panel reveal' + (pr.pixelArt ? ' is-pixel-art' : '') }, [
         media,
         el('div', { class: 'project-body' }, [
           el('h3', { text: pr.title }),

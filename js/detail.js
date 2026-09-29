@@ -232,6 +232,8 @@
     var pr = list[index];
     var label = 'Quest ' + P.pad(index + 1);
     document.body.dataset.hud = label;
+    // On the body (not just the page content) so the full-screen image viewer is covered too.
+    document.body.classList.toggle('is-pixel-art', !!pr.pixelArt);
     setMeta(pr.title, pr.description);
 
     var tech = (pr.tech || []).filter(Boolean);

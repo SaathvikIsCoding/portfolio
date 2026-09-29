@@ -50,6 +50,209 @@
   ],
   "projects": [
     {
+      "id": "rocket-mouse",
+      "title": "Rocket Mouse",
+      "description": "A mouse-only pixel-art arcade shooter that teaches how light mixes: hold red, green and blue to mix colours and free the Shades, bringing colour back to a grey galaxy.",
+      "role": "Solo creator, game design, story and art",
+      "period": "Sep 2026 [confirm start and end dates]",
+      "tech": [
+        "Unity 6",
+        "C#",
+        "URP 2D",
+        "Aseprite",
+        "Google Gemini",
+        "Claude Code",
+        "WebGL",
+        "itch.io"
+      ],
+      "pixelArt": true,
+      "image": "assets/uploads/rocket-mouse-02-cover.webp",
+      "live": "https://daravath-saathvik.itch.io/rocket-mouse",
+      "repo": "",
+      "process": "Rocket Mouse started as a complete design document: rules, ships, enemies, ten levels, two bosses, a full story, and an asset list where every sprite had an ID, a size, a frame count and a prompt. Those documents stayed the source of truth for the whole project.\n\n## Art pipeline\n- Wrote detailed art prompts group by group, with frame-by-frame plans and pixel maps for tiny sprites\n- Drew the art in Aseprite [confirm: whether any pieces used Adobe Firefly or PixelLab], then checked every file by script before it went into the game: size and frames, greyscale for tinted sprites, overlay alignment, tiling seams and clean pixels\n- Tried the ships at 128 px with every asset scaled up 4x, then went back to a 32 px Starling for a truer retro look\n- Drew colour effects once in greyscale and tinted them in Unity, so one sprite covers all seven colours\n\n## Building the game\n- Colours are bit flags (Red = 1, Green = 2, Blue = 4), so mixing is a bitwise OR, exactly like additive light\n- Levels, waves, enemies, ships, sounds and the palette are ScriptableObjects that can be tuned without code\n- One menu click slices every sprite sheet, builds all prefabs and effects and regenerates all 12 scenes\n\n## Playtesting and fixes\n- A HUD orb drew 6.25x too big because Unity's native size assumes 100 pixels per unit and the art is 16; fixed with a pixel-exact sizing helper\n- Level map planets sat off-centre, so the ring centres were measured from the map image and the nodes re-placed\n- The music drowned out the effects, so all 22 effects were rebalanced into loudness groups, the music lowered, and the three charge tones tuned to C, E and G so mixing colours plays a chord\n- Level 1 felt slow, so enemy speed, spawn gaps and the finale were retuned\n\n## Release\n- A web build with a custom template that stops the browser taking middle and right click, so all three colour buttons work on a web page\n- An itch.io page with cover, banner, screenshots, animated GIFs and a poster, all built from the game's own art",
+      "sections": [
+        {
+          "type": "text",
+          "heading": "The idea",
+          "text": "Light mixes differently from paint: red and green light make yellow, and all three make white. In Rocket Mouse the three mouse buttons are the three primaries of light. Hold two at once and you are literally mixing two lights. Each coloured monster, a Shade, can only be freed by light of its exact colour, and the grey world slowly fills with colour as you free them."
+        },
+        {
+          "type": "images-1",
+          "heading": "",
+          "text": "",
+          "images": [
+            {
+              "src": "assets/uploads/rocket-mouse-20-howto-colour-mixing.webp",
+              "caption": "Hold to mix, release to fire"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "heading": "Gameplay",
+          "text": "The plane follows the mouse. Left click is Red, middle click Green, right click Blue. Hold buttons to charge and mix, release to fire. The right colour frees a Shade in a burst of light; the wrong one is absorbed and the Shade speeds up. Ten levels bring nine kinds of Shade, from fast-diving Embers to colour-shifting Prisms, Knots you break apart one colour at a time, and Hollows that only White light can crack. Three ships, two bosses and a White power move complete the game."
+        },
+        {
+          "type": "images-2",
+          "heading": "",
+          "text": "",
+          "images": [
+            {
+              "src": "assets/uploads/rocket-mouse-23-shades-idle.gif",
+              "caption": "Shades in motion"
+            },
+            {
+              "src": "assets/uploads/rocket-mouse-24-ships-idle.gif",
+              "caption": "The three ships"
+            }
+          ]
+        },
+        {
+          "type": "images-2",
+          "heading": "",
+          "text": "",
+          "images": [
+            {
+              "src": "assets/uploads/rocket-mouse-21-meet-the-shades.webp",
+              "caption": "The nine Shades"
+            },
+            {
+              "src": "assets/uploads/rocket-mouse-25-white-power-move.gif",
+              "caption": "The White power move"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "heading": "Story",
+          "text": "The Grey has swallowed the Great Star, and its colours have scattered across space as frightened monsters. Rocke, a young pilot from a grey mining asteroid, flies with Luma, an AI living inside a glowing light core. The story is told through dialogue with character portraits and eight pixel-art cutscenes, and each chapter teaches one step of colour mixing."
+        },
+        {
+          "type": "images-1",
+          "heading": "",
+          "text": "",
+          "images": [
+            {
+              "src": "assets/uploads/rocket-mouse-35-portraits.webp",
+              "caption": "Luma and Rocke, 48 x 48 portraits"
+            }
+          ]
+        },
+        {
+          "type": "images-4",
+          "heading": "",
+          "text": "",
+          "images": [
+            {
+              "src": "assets/uploads/rocket-mouse-12-cutscene-intro.webp",
+              "caption": "The Star is swallowed"
+            },
+            {
+              "src": "assets/uploads/rocket-mouse-13-cutscene-devourer.webp",
+              "caption": "The Devourer"
+            },
+            {
+              "src": "assets/uploads/rocket-mouse-14-cutscene-solarwing.webp",
+              "caption": "The Solar Wing forms"
+            },
+            {
+              "src": "assets/uploads/rocket-mouse-16-cutscene-home.webp",
+              "caption": "Home in colour"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "heading": "Art direction",
+          "text": "16-bit pixel art at 640 x 360, shown at exact 2x and 3x so every pixel stays crisp. One nine-colour palette is stored in a single asset and never hard-coded. Each level's background is more saturated than the last, from an almost grey first level to a full-colour ending. Colour effects are drawn once in greyscale and tinted in Unity."
+        },
+        {
+          "type": "images-2",
+          "heading": "",
+          "text": "",
+          "images": [
+            {
+              "src": "assets/uploads/rocket-mouse-34-colour-progression.webp",
+              "caption": "All twelve backgrounds, grey to full colour"
+            },
+            {
+              "src": "assets/uploads/rocket-mouse-31-tint-system.webp",
+              "caption": "One greyscale sprite, seven colours"
+            }
+          ]
+        },
+        {
+          "type": "images-2",
+          "heading": "Process",
+          "text": "Every art drop was checked by script before entering the game, and problems found in playtests were measured and fixed.",
+          "images": [
+            {
+              "src": "assets/uploads/rocket-mouse-30-ship-scale.webp",
+              "caption": "Scale test: 128 px tried, 32 px chosen"
+            },
+            {
+              "src": "assets/uploads/rocket-mouse-33-level-map-fix.webp",
+              "caption": "Level map nodes, before and after"
+            }
+          ]
+        }
+      ],
+      "gallery": [
+        {
+          "src": "assets/uploads/rocket-mouse-01-poster.webp",
+          "caption": "Poster"
+        },
+        {
+          "src": "assets/uploads/rocket-mouse-10-main-menu.webp",
+          "caption": "Main menu art"
+        },
+        {
+          "src": "assets/uploads/rocket-mouse-11-level-map.webp",
+          "caption": "Level map"
+        },
+        {
+          "src": "assets/uploads/rocket-mouse-15-cutscene-star.webp",
+          "caption": "The Star reignites"
+        },
+        {
+          "src": "assets/uploads/rocket-mouse-17-cutscene-hangar.webp",
+          "caption": "The hangar"
+        },
+        {
+          "src": "assets/uploads/rocket-mouse-18-cutscene-crash.webp",
+          "caption": "The crash"
+        },
+        {
+          "src": "assets/uploads/rocket-mouse-19-cutscene-white.webp",
+          "caption": "White awakens"
+        },
+        {
+          "src": "assets/uploads/rocket-mouse-36-ship-spritesheets.webp",
+          "caption": "Ship sprite sheets"
+        },
+        {
+          "src": "assets/uploads/rocket-mouse-38-grey-heart-death.webp",
+          "caption": "The Grey Heart shatters into light"
+        },
+        {
+          "src": "assets/uploads/rocket-mouse-39-devourer-bite.webp",
+          "caption": "The Devourer's bite"
+        },
+        {
+          "src": "assets/uploads/rocket-mouse-32-glow-check.webp",
+          "caption": "Checking glow overlays line up"
+        },
+        {
+          "src": "assets/uploads/rocket-mouse-04-logo-emblem.webp",
+          "caption": "Logo emblem"
+        },
+        {
+          "src": "assets/uploads/rocket-mouse-05-app-icon.webp",
+          "caption": "App icon"
+        }
+      ]
+    },
+    {
       "id": "qwink",
       "title": "Qwink",
       "description": "",

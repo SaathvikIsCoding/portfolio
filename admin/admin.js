@@ -140,6 +140,7 @@
         role: str(pr && pr.role),
         period: str(pr && pr.period),
         tech: arr(pr && pr.tech).map(str).filter(Boolean),
+        pixelArt: !!(pr && pr.pixelArt),
         image: str(pr && pr.image),
         live: str(pr && pr.live),
         repo: str(pr && pr.repo),
@@ -417,6 +418,13 @@
       if (onChange) onChange(input.value);
     });
     return h('label', { class: 'field' + (cls ? ' ' + cls : '') }, h('span', { text: label }), input, hint ? h('small', { text: hint }) : null);
+  }
+
+  function checkField(label, obj, key) {
+    const box = h('input', { type: 'checkbox' });
+    box.checked = !!obj[key];
+    box.addEventListener('change', () => { obj[key] = box.checked; markDirty(); });
+    return h('label', { class: 'check' }, box, label);
   }
 
   function listField(label, obj, key, opts = {}) {
@@ -789,7 +797,7 @@
         intro: 'Your work. Each project gets its own page with your process and gallery. The first project appears first on your site.',
         addText: 'Add project',
         emptyText: 'No projects yet. Click "Add project" to add your first one.',
-        create: () => ({ id: '', title: '', description: '', role: '', period: '', tech: [], image: '', live: '', repo: '', process: '', sections: [], gallery: [] }),
+        create: () => ({ id: '', title: '', description: '', role: '', period: '', tech: [], pixelArt: false, image: '', live: '', repo: '', process: '', sections: [], gallery: [] }),
         summary: (p) => p.title || 'Untitled project',
         body: (p, refresh) => [
           field('Project name', p, 'title', { onChange: refresh }),
@@ -804,6 +812,7 @@
             field('Source code link', p, 'repo', { type: 'url', placeholder: 'https://github.com/…' })
           ),
           imagePicker('Cover image', p, 'image', { shape: 'wide', maxSize: 2000, hint: 'Shown on the card and at the top of the project page.' }),
+          checkField('Pixel art: keep pixels sharp and never crop this project’s images', p, 'pixelArt'),
           field('The process', p, 'process', {
             multiline: true, rows: 12,
             hint: 'Walk visitors through how you made it: the brief, research, sketches, iterations, problems you solved, what you learned. Leave an empty line between paragraphs. Start a line with "## " for a sub-heading and "- " for a bullet point.'

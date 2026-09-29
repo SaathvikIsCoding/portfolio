@@ -55,6 +55,8 @@
 
 /* ---------- Base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
+/* Anything the scripts hide stays hidden, even if its class sets display (e.g. "See all" buttons). */
+[hidden] { display: none !important; }
 
 html {
   scroll-behavior: smooth;
@@ -169,6 +171,7 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  min-height: 44px; /* same tap-target height as the header HUD pieces */
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 1.15rem;
@@ -609,7 +612,7 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
 .map-stop.is-current .map-num { color: var(--color-gold); }
 .map-path {
   flex: 0 1 28px;
-  min-width: 8px;
+  min-width: 2px; /* paths shrink first, so pages with many parts still fit */
   height: 2px;
   margin-top: 11px; /* centred on the 24px stop */
   background: repeating-linear-gradient(90deg, #3a3a3a 0 4px, transparent 4px 7px);
@@ -624,6 +627,14 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
 }
 @keyframes ship-bob { 50% { transform: rotate(90deg) translateX(-2px); } }
 .level-tag + .level-map { margin: 0 0 var(--space-5); } /* parts without a heading */
+/* Phones: smaller stops so a 13-part project (13 x 20px + 12 x 2px = 284px) fits even at 320px.
+   overflow: hidden is only a last-resort guard against sideways scrolling on very long maps. */
+@media (max-width: 440px) {
+  .level-map { overflow: hidden; }
+  .map-mark { width: 20px; height: 20px; }
+  .map-path { margin-top: 9px; }
+  .map-ship { width: 20px; height: 18px; }
+}
 
 /* About */
 .about-body { display: grid; gap: var(--space-6); }
@@ -925,6 +936,19 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; }
 .shots-2, .shots-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (min-width: 700px) { .shots-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .shots-1 .gallery-item img { aspect-ratio: auto; max-height: 80vh; object-fit: contain; background: var(--color-surface-2); }
+/* Pixel-art projects (project.pixelArt, set in the admin): the images are exact pixel multiples
+   of the original art, so keep every pixel sharp when scaled and never crop them.
+   Section images show at their true shape; cover, card and gallery tiles letterbox instead. */
+.is-pixel-art img { image-rendering: pixelated; }
+.is-pixel-art .project-media img,
+.is-pixel-art .detail-cover img,
+.is-pixel-art .gallery-item img { object-fit: contain; background: var(--color-surface-2); }
+.is-pixel-art .shot-grid { align-items: start; }
+.is-pixel-art .shot-grid .gallery-item img { aspect-ratio: auto; }
+/* A single image hugs its own shape (no bars): centred, never wider than the page or taller than 80vh. */
+.is-pixel-art .shots-1 .gallery-item { width: auto; max-width: 100%; justify-self: center; }
+.is-pixel-art .shots-1 .gallery-item img { width: auto; max-width: 100%; height: auto; max-height: 80vh; }
+
 .embed { border: 1px solid var(--color-border); background: var(--color-surface-2); }
 .embed iframe { display: block; width: 100%; border: 0; }
 .embed-html iframe { height: 420px; }
