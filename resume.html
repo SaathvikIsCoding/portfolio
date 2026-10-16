@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daravath Saathvik</title>
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="https://daravath-saathvik.pages.dev/resume">
+  <script>(function () {
+  var NEW = "https://daravath-saathvik.pages.dev/";
+  var MAP = {"":"","index.html":"","work.html":"work","about.html":"about","resume.html":"resume","contact.html":"contact","privacy.html":"privacy","terms.html":"terms","games.html":"work#games","projects.html":"work#marketing","3d.html":"work#3d","experience.html":"about#experience","project.html":"work","certificate.html":"about"};
+  var path = location.pathname.replace(/^\/portfolio(\/|$)/, '').replace(/^\//, '');
+  var q = new URLSearchParams(location.search);
+  var id = q.get('id');
+  var safe = id && /^[a-z0-9-]+$/i.test(id);
+  var to;
+  if (/^project(\.html)?$/.test(path)) to = safe ? 'work/' + id : 'work';
+  else if (/^certificate(\.html)?$/.test(path) && safe) to = 'certificate?id=' + id;
+  else if (Object.prototype.hasOwnProperty.call(MAP, path)) to = MAP[path];
+  else to = path.replace(/\.html$/, '').replace(/(^|\/)index$/, '$1') + location.search;
+  if (location.hash && to.indexOf('#') < 0) to += location.hash;
+  location.replace(NEW + to);
+})();</script>
+  <noscript><meta http-equiv="refresh" content="0; url=https://daravath-saathvik.pages.dev/resume"></noscript>
+  <style>body { margin: 48px 16px; font: 17px/1.6 Arial, sans-serif; color: #121212; } a { color: #121212; }</style>
+</head>
+<body>
+  <p>My portfolio has moved to <a href="https://daravath-saathvik.pages.dev/resume">daravath-saathvik.pages.dev/resume</a>.</p>
+</body>
+</html>
